@@ -1,0 +1,26 @@
+{
+  "name": "cinemahub-monorepo",
+  "version": "1.0.0",
+  "description": "CinemaHub - Modern Cinema Booking Platform (NestJS + React + PostgreSQL + Redis)",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm --workspace=backend run start:dev",
+    "dev:frontend": "npm --workspace=frontend run dev",
+    "build": "npm --workspace=backend run build && npm --workspace=frontend run build",
+    "docker:up": "docker compose -f docker-compose.local.yml up -d",
+    "docker:down": "docker compose -f docker-compose.local.yml down",
+    "prisma:generate": "npm --workspace=backend run prisma:generate",
+    "prisma:migrate": "npm --workspace=backend run prisma:migrate",
+    "prisma:seed": "npm --workspace=backend run prisma:seed",
+    "prisma:studio": "npm --workspace=backend run prisma:studio"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
+

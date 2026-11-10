@@ -1,0 +1,574 @@
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
+import { MovieStatus } from '@prisma/client';
+
+const FALLBACK_MOVIES = [
+  {
+    id: 1,
+    title: 'Kung Fu Panda 4',
+    slug: 'kung-fu-panda-4',
+    description: 'Sau khi được chọn làm Thủ Lĩnh Tinh Thần của Thung Lũng Bình Yên, Po cần tìm và huấn luyện một chiến binh Rồng mới, trong khi một kẻ thù độc ác mới là Tắc Kè Bông Chameleon đang nhăm nhe triệu hồi tất cả những kẻ phản diện từ quá khứ.',
+    duration: 94,
+    releaseDate: '2024-03-08T00:00:00.000Z',
+    ageRating: 'P',
+    director: 'Mike Mitchell',
+    cast: 'Jack Black, Awkwafina, Viola Davis',
+    posterUrl: '/img/movies/kungfupanda4.jpg',
+    bannerUrl: '/img/movies/kungfupanda4-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/_inKs4eeHiI',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 6, name: 'Hoạt hình', slug: 'hoat-hinh' } },
+      { genre: { id: 2, name: 'Hài hước', slug: 'hai-huoc' } },
+    ],
+  },
+  {
+    id: 2,
+    title: 'Dune: Phần 2',
+    slug: 'dune-phan-2',
+    description: 'Paul Atreides hội ngộ cùng Chani và người Fremen khi anh tìm cách trả thù những kẻ đã hủy diệt gia đình mình. Đối mặt với sự lựa chọn giữa tình yêu của đời mình và số phận của vũ trụ, Paul cố gắng ngăn chặn một tương lai khủng khiếp mà chỉ anh mới có thể thấy trước.',
+    duration: 166,
+    releaseDate: '2024-03-01T00:00:00.000Z',
+    ageRating: 'T16',
+    director: 'Denis Villeneuve',
+    cast: 'Timothée Chalamet, Zendaya, Rebecca Ferguson',
+    posterUrl: '/img/movies/dune2.jpg',
+    bannerUrl: '/img/movies/dune2-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/Way9Dexny3w',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 5, name: 'Khoa học viễn tưởng', slug: 'khoa-hoc-vien-tuong' } },
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+    ],
+  },
+  {
+    id: 3,
+    title: 'Mai',
+    slug: 'mai',
+    description: 'Mai là câu chuyện tình cảm nhẹ nhàng nhưng chứa đựng nhiều góc khuất tâm lý sâu sắc xoay quanh cuộc đời của một người phụ nữ tên Mai, người luôn nỗ lực vượt lên số phận và định kiến xã hội để tìm kiếm hạnh phúc đích thực.',
+    duration: 131,
+    releaseDate: '2024-02-10T00:00:00.000Z',
+    ageRating: 'T18',
+    director: 'Trấn Thành',
+    cast: 'Phương Anh Đào, Tuấn Trần, Trấn Thành',
+    posterUrl: '/img/movies/mai.jpg',
+    bannerUrl: '/img/movies/mai-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/W8VekFsJKZc',
+    status: 'NOW_SHOWING',
+    genres: [{ genre: { id: 3, name: 'Tâm lý', slug: 'tam-ly' } }],
+  },
+  {
+    id: 4,
+    title: 'Quật Mộ Trùng Ma',
+    slug: 'quat-mo-trung-ma',
+    description: 'Hai pháp sư, một thầy phong thủy và một người chôn cất cùng nhau hợp tác để khai quật một ngôi mộ bí ẩn của một gia đình giàu có ở Mỹ, vô tình giải phóng một thế lực tà ác đáng sợ ẩn giấu bên dưới.',
+    duration: 134,
+    releaseDate: '2024-03-15T00:00:00.000Z',
+    ageRating: 'T18',
+    director: 'Jang Jae-hyun',
+    cast: 'Choi Min-sik, Kim Go-eun, Lee Do-hyun',
+    posterUrl: '/img/movies/quatmotrungma.jpg',
+    bannerUrl: '/img/movies/quatmotrungma-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/ag5d9Su53nA',
+    status: 'NOW_SHOWING',
+    genres: [{ genre: { id: 4, name: 'Kinh dị', slug: 'kinh-di' } }],
+  },
+  {
+    id: 5,
+    title: 'Godzilla x Kong',
+    slug: 'godzilla-x-kong',
+    description: 'Godzilla và Kong phải gạt bỏ những bất hòa xưa cũ để cùng nhau hợp tác chống lại một mối đe dọa khổng lồ mới từ bên trong Trái Đất Rỗng, đe dọa sự tồn vong của cả hai loài và toàn nhân loại.',
+    duration: 115,
+    releaseDate: '2026-11-20T00:00:00.000Z',
+    ageRating: 'T13',
+    director: 'Adam Wingard',
+    cast: 'Rebecca Hall, Brian Tyree Henry, Dan Stevens',
+    posterUrl: '/img/movies/godzillaxkong.jpg',
+    bannerUrl: '/img/movies/godzillaxkong-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/lV1OOlGwExM',
+    status: 'COMING_SOON',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 5, name: 'Khoa học viễn tưởng', slug: 'khoa-hoc-vien-tuong' } },
+    ],
+  },
+  {
+    id: 6,
+    title: 'Avatar',
+    slug: 'avatar',
+    description: 'Một cựu thủy quân lục chiến bị liệt được phái đến hành tinh Pandora để thực hiện một nhiệm vụ đặc biệt, nhưng anh đã yêu một cô gái bản địa người Na\'vi và phải chiến đấu để bảo vệ hành tinh quê hương của cô.',
+    duration: 162,
+    releaseDate: '2009-12-18T00:00:00.000Z',
+    ageRating: 'T13',
+    director: 'James Cameron',
+    cast: 'Sam Worthington, Zoe Saldana, Sigourney Weaver',
+    posterUrl: '/img/movies/avatar.jpg',
+    bannerUrl: '/img/movies/avatar-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/d9MyW72ELq0',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 5, name: 'Khoa học viễn tưởng', slug: 'khoa-hoc-vien-tuong' } },
+    ],
+  },
+  {
+    id: 7,
+    title: 'Deadpool 2',
+    slug: 'deadpool-2',
+    description: 'Deadpool phải thành lập một nhóm dị nhân mang tên X-Force để bảo vệ một cậu bé dị nhân trẻ tuổi khỏi Cable, một người lính đi xuyên thời gian.',
+    duration: 119,
+    releaseDate: '2018-05-18T00:00:00.000Z',
+    ageRating: 'T18',
+    director: 'David Leitch',
+    cast: 'Ryan Reynolds, Josh Brolin, Morena Baccarin',
+    posterUrl: '/img/movies/deadpool2.jpg',
+    bannerUrl: '/img/movies/deadpool2-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/73_1biulkYk',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 2, name: 'Hài hước', slug: 'hai-huoc' } },
+    ],
+  },
+  {
+    id: 8,
+    title: 'Fast & Furious 10',
+    slug: 'fast-and-furious-10',
+    description: 'Dom Toretto và gia đình của mình phải đối mặt với đối thủ nguy hiểm nhất từ trước đến nay: một kẻ thù đầy thù hận từ quá khứ muốn phá hủy tất cả những gì Dom yêu quý.',
+    duration: 141,
+    releaseDate: '2023-05-19T00:00:00.000Z',
+    ageRating: 'T16',
+    director: 'Louis Leterrier',
+    cast: 'Vin Diesel, Michelle Rodriguez, Jason Momoa',
+    posterUrl: '/img/movies/fastx.jpg',
+    bannerUrl: '/img/movies/fastx-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/32RAq6JzguY',
+    status: 'NOW_SHOWING',
+    genres: [{ genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } }],
+  },
+  {
+    id: 9,
+    title: 'Biệt Đội Săn Ma: Kỷ Nguyên Băng Giá',
+    slug: 'biet-doi-san-ma-ky-nguyen-bang-gia',
+    description: 'Gia đình Spengler quay trở lại nơi mọi thứ bắt đầu - trạm cứu hỏa thành phố New York mang tính biểu tượng - để lập nhóm với các Ghostbusters ban đầu, những người đã phát triển một phòng thí nghiệm nghiên cứu tối mật.',
+    duration: 115,
+    releaseDate: '2024-03-22T00:00:00.000Z',
+    ageRating: 'P',
+    director: 'Gil Kenan',
+    cast: 'Paul Rudd, Carrie Coon, Finn Wolfhard',
+    posterUrl: '/img/movies/ghostbusters.jpg',
+    bannerUrl: '/img/movies/ghostbusters-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/AbkYj4X_9g4',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 2, name: 'Hài hước', slug: 'hai-huoc' } },
+      { genre: { id: 5, name: 'Khoa học viễn tưởng', slug: 'khoa-hoc-vien-tuong' } },
+    ],
+  },
+  {
+    id: 10,
+    title: 'Võ Sĩ Giác Đấu 2',
+    slug: 'vo-si-giac-dau-2',
+    description: 'Nhiều năm sau khi chứng kiến cái chết của Maximus dưới tay người chú của mình, Lucius buộc phải bước vào Đấu trường La Mã sau khi quê hương anh bị chinh phục bởi những vị hoàng đế tàn bạo.',
+    duration: 148,
+    releaseDate: '2024-11-22T00:00:00.000Z',
+    ageRating: 'T18',
+    director: 'Ridley Scott',
+    cast: 'Paul Mescal, Pedro Pascal, Denzel Washington',
+    posterUrl: '/img/movies/gladiator2.jpg',
+    bannerUrl: '/img/movies/gladiator2-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/4rgYUipGJNo',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 3, name: 'Tâm lý', slug: 'tam-ly' } },
+    ],
+  },
+  {
+    id: 11,
+    title: 'Sát Thủ John Wick: Phần 4',
+    slug: 'sat-thu-john-wick-phan-4',
+    description: 'John Wick tìm ra con đường đánh bại High Table. Nhưng trước khi có thể kiếm được tự do, Wick phải đối mặt với một kẻ thù mới có liên minh hùng mạnh trên toàn cầu và những thế lực biến bạn cũ thành kẻ thù.',
+    duration: 169,
+    releaseDate: '2023-03-24T00:00:00.000Z',
+    ageRating: 'T18',
+    director: 'Chad Stahelski',
+    cast: 'Keanu Reeves, Donnie Yen, Bill Skarsgård',
+    posterUrl: '/img/movies/johnwick4.jpg',
+    bannerUrl: '/img/movies/johnwick4-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/qEVUtrk8_B4',
+    status: 'NOW_SHOWING',
+    genres: [{ genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } }],
+  },
+  {
+    id: 12,
+    title: 'Mufasa: Vua Sư Tử',
+    slug: 'mufasa-vua-su-tu',
+    description: 'Rafiki kể câu chuyện về huyền thoại Mufasa cho cô sư tử con Kiara, con gái của Simba và Nala, với Timon và Pumbaa đóng vai trò kể chuyện hài hước.',
+    duration: 120,
+    releaseDate: '2024-12-20T00:00:00.000Z',
+    ageRating: 'P',
+    director: 'Barry Jenkins',
+    cast: 'Aaron Pierre, Kelvin Harrison Jr., Seth Rogen',
+    posterUrl: '/img/movies/mufasa.jpg',
+    bannerUrl: '/img/movies/mufasa-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/o17MF9vnabg',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 3, name: 'Tâm lý', slug: 'tam-ly' } },
+      { genre: { id: 6, name: 'Hoạt hình', slug: 'hoat-hinh' } },
+    ],
+  },
+  {
+    id: 13,
+    title: 'Vùng Đất Câm Lặng: Ngày Một',
+    slug: 'vung-dat-cam-lang-ngay-mot',
+    description: 'Trải nghiệm ngày thế giới rơi vào tĩnh lặng trong phần tiền truyện này của loạt phim kinh dị sinh tồn ăn khách.',
+    duration: 100,
+    releaseDate: '2024-06-28T00:00:00.000Z',
+    ageRating: 'T16',
+    director: 'Michael Sarnoski',
+    cast: 'Lupita Nyong\'o, Joseph Quinn, Alex Wolff',
+    posterUrl: '/img/movies/quietplace.jpg',
+    bannerUrl: '/img/movies/quietplace-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/YPY7J-flzE8',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 4, name: 'Kinh dị', slug: 'kinh-di' } },
+      { genre: { id: 5, name: 'Khoa học viễn tưởng', slug: 'khoa-hoc-vien-tuong' } },
+    ],
+  },
+  {
+    id: 14,
+    title: 'Sonic the Hedgehog 3',
+    slug: 'sonic-the-hedgehog-3',
+    description: 'Sonic, Knuckles và Tails tái hợp chống lại một đối thủ mới mạnh mẽ, Shadow, kẻ thù bí ẩn với sức mạnh vượt trội.',
+    duration: 110,
+    releaseDate: '2024-12-20T00:00:00.000Z',
+    ageRating: 'P',
+    director: 'Jeff Fowler',
+    cast: 'Ben Schwartz, Jim Carrey, Keanu Reeves',
+    posterUrl: '/img/movies/sonic3.jpg',
+    bannerUrl: '/img/movies/sonic3-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/qSu6i2iFMO0',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 6, name: 'Hoạt hình', slug: 'hoat-hinh' } },
+    ],
+  },
+  {
+    id: 15,
+    title: 'Người Nhện: Du Hành Vũ Trụ Nhện',
+    slug: 'nguoi-nhen-du-hanh-vu-tru-nhen',
+    description: 'Miles Morales tái hợp với Gwen Stacy để thực hiện một cuộc phiêu lưu xuyên qua Đa vũ trụ, nơi anh gặp một nhóm Người Nhện chịu trách nhiệm bảo vệ sự tồn tại của nó.',
+    duration: 140,
+    releaseDate: '2023-06-02T00:00:00.000Z',
+    ageRating: 'P',
+    director: 'Joaquim Dos Santos, Kemp Powers',
+    cast: 'Shameik Moore, Hailee Steinfeld, Oscar Isaac',
+    posterUrl: '/img/movies/spiderman.jpg',
+    bannerUrl: '/img/movies/spiderman-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/shW9i6k8cB0',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 6, name: 'Hoạt hình', slug: 'hoat-hinh' } },
+      { genre: { id: 5, name: 'Khoa học viễn tưởng', slug: 'khoa-hoc-vien-tuong' } },
+    ],
+  },
+  {
+    id: 16,
+    title: 'Titanic',
+    slug: 'titanic',
+    description: 'Câu chuyện tình yêu đầy bi kịch giữa chàng họa sĩ nghèo Jack Dawson và tiểu thư quý tộc Rose DeWitt Bukater trên con tàu Titanic định mệnh.',
+    duration: 194,
+    releaseDate: '1997-12-19T00:00:00.000Z',
+    ageRating: 'T16',
+    director: 'James Cameron',
+    cast: 'Leonardo DiCaprio, Kate Winslet, Billy Zane',
+    posterUrl: '/img/movies/titanic.jpg',
+    bannerUrl: '/img/movies/titanic-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/I10q6fj4n3U',
+    status: 'NOW_SHOWING',
+    genres: [{ genre: { id: 3, name: 'Tâm lý', slug: 'tam-ly' } }],
+  },
+  {
+    id: 17,
+    title: 'Chiến Binh Báo Đen: Wakanda Bất Diệt',
+    slug: 'chien-binh-bao-den-wakanda-bat-diet',
+    description: 'Nữ hoàng Ramonda, Shuri, M\'Baku, Okoye và Dora Milaje chiến đấu để bảo vệ quốc gia của họ khỏi sự can thiệp của các cường quốc thế giới sau cái chết của Vua T\'Challa.',
+    duration: 161,
+    releaseDate: '2022-11-11T00:00:00.000Z',
+    ageRating: 'T13',
+    director: 'Ryan Coogler',
+    cast: 'Letitia Wright, Lupita Nyong\'o, Danai Gurira',
+    posterUrl: '/img/movies/wakanda.jpg',
+    bannerUrl: '/img/movies/wakanda-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/_Z3QKkl1WyM',
+    status: 'NOW_SHOWING',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 5, name: 'Khoa học viễn tưởng', slug: 'khoa-hoc-vien-tuong' } },
+    ],
+  },
+  {
+    id: 18,
+    title: 'Avatar 3: Lửa và Tro Tàn',
+    slug: 'avatar-3-lua-va-tro-tan',
+    description: 'Jake Sully và gia đình Na\'vi tiếp tục cuộc chiến bảo vệ Pandora trước một bộ tộc Na\'vi hung hãn mới xuất hiện.',
+    duration: 190,
+    releaseDate: '2026-10-16T00:00:00.000Z',
+    ageRating: 'T13',
+    director: 'James Cameron',
+    cast: 'Sam Worthington, Zoe Saldana, Michelle Yeoh',
+    posterUrl: '/img/movies/avatar3.jpg',
+    bannerUrl: '/img/movies/avatar-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/a8Gx8wiNbs8',
+    status: 'COMING_SOON',
+    genres: [
+      { genre: { id: 1, name: 'Hành động', slug: 'hanh-dong' } },
+      { genre: { id: 5, name: 'Khoa học viễn tưởng', slug: 'khoa-hoc-vien-tuong' } },
+    ],
+  },
+  {
+    id: 19,
+    title: 'Zootopia 2',
+    slug: 'zootopia-2',
+    description: 'Judy Hopps và Nick Wilde trở lại điều tra một vụ án mới, dẫn họ khám phá những ngóc ngách chưa từng biết đến của thành phố Zootopia.',
+    duration: 108,
+    releaseDate: '2026-12-04T00:00:00.000Z',
+    ageRating: 'P',
+    director: 'Jared Bush, Byron Howard',
+    cast: 'Ginnifer Goodwin, Jason Bateman, Ke Huy Quan',
+    posterUrl: '/img/movies/zootopia2.jpg',
+    bannerUrl: '/img/movies/kungfupanda4-banner.jpg',
+    trailerUrl: 'https://www.youtube.com/embed/jWM0ct-OLsM',
+    status: 'COMING_SOON',
+    genres: [
+      { genre: { id: 2, name: 'Hài hước', slug: 'hai-huoc' } },
+      { genre: { id: 6, name: 'Hoạt hình', slug: 'hoat-hinh' } },
+    ],
+  },
+];
+
+const FALLBACK_THEATERS = [
+  {
+    id: 1,
+    name: 'CineCore Nguyễn Huệ',
+    slug: 'cinecore-nguyen-hue',
+    address: '123 Nguyễn Huệ, Quận 1',
+    city: 'TP. Hồ Chí Minh',
+    phone: '028 3822 1234',
+    rooms: [
+      { id: 1, name: 'Phòng 1 (Standard)', screenType: '2D Digital', totalSeats: 30 },
+      { id: 2, name: 'Phòng 2 (VIP)', screenType: 'Gold Class 3D', totalSeats: 20 },
+    ],
+  },
+  {
+    id: 2,
+    name: 'CineCore Hà Đông',
+    slug: 'cinecore-ha-dong',
+    address: '110 Trần Phú, Hà Đông',
+    city: 'Hà Nội',
+    phone: '024 3355 6789',
+    rooms: [
+      { id: 3, name: 'Phòng 1 (IMAX)', screenType: 'IMAX Laser 4K', totalSeats: 40 },
+      { id: 4, name: 'Phòng 2', screenType: '2D Digital', totalSeats: 40 },
+      { id: 5, name: 'Phòng 3', screenType: '2D Digital', totalSeats: 30 },
+      { id: 6, name: 'Phòng 4', screenType: '3D Digital', totalSeats: 30 },
+      { id: 7, name: 'Phòng 5 (Super)', screenType: '4DX Laser', totalSeats: 50 },
+    ],
+  },
+  {
+    id: 3,
+    name: 'CineCore Đà Nẵng',
+    slug: 'cinecore-da-nang',
+    address: '910A Ngô Quyền, Sơn Trà',
+    city: 'Đà Nẵng',
+    phone: '0236 3999 888',
+    rooms: [
+      { id: 8, name: 'Phòng 1 (Grand)', screenType: 'IMAX Laser', totalSeats: 50 },
+      { id: 9, name: 'Phòng 2', screenType: '2D Digital', totalSeats: 40 },
+      { id: 10, name: 'Phòng 3', screenType: '3D Digital', totalSeats: 40 },
+      { id: 11, name: 'Phòng 4', screenType: '2D Digital', totalSeats: 30 },
+      { id: 12, name: 'Phòng 5', screenType: '2D Digital', totalSeats: 30 },
+      { id: 13, name: 'Phòng 6', screenType: 'Gold Class', totalSeats: 30 },
+    ],
+  },
+  {
+    id: 4,
+    name: 'CineCore Cần Thơ',
+    slug: 'cinecore-can-tho',
+    address: 'Đại lộ Hoà Bình, Ninh Kiều',
+    city: 'Cần Thơ',
+    phone: '0292 3888 777',
+    rooms: [
+      { id: 14, name: 'Phòng 1', screenType: '2D Digital', totalSeats: 40 },
+      { id: 15, name: 'Phòng 2', screenType: '3D Digital', totalSeats: 40 },
+      { id: 16, name: 'Phòng 3', screenType: '2D Digital', totalSeats: 30 },
+      { id: 17, name: 'Phòng 4', screenType: '2D Digital', totalSeats: 30 },
+      { id: 18, name: 'Phòng 5 (VIP)', screenType: 'VIP Lounge', totalSeats: 20 },
+    ],
+  },
+  {
+    id: 5,
+    name: 'CineCore Huế',
+    slug: 'cinecore-hue',
+    address: 'Vincom Plaza, Phú Nhuận',
+    city: 'Huế',
+    phone: '0234 3777 666',
+    rooms: [
+      { id: 19, name: 'Phòng 1 (Premiere)', screenType: 'IMAX Laser 4K', totalSeats: 50 },
+      { id: 20, name: 'Phòng 2', screenType: '2D Digital', totalSeats: 40 },
+      { id: 21, name: 'Phòng 3', screenType: '2D Digital', totalSeats: 40 },
+      { id: 22, name: 'Phòng 4', screenType: '3D Digital', totalSeats: 30 },
+      { id: 23, name: 'Phòng 5', screenType: '2D Digital', totalSeats: 30 },
+      { id: 24, name: 'Phòng 6', screenType: '2D Digital', totalSeats: 30 },
+      { id: 25, name: 'Phòng 7 (VIP)', screenType: 'Gold Class', totalSeats: 20 },
+    ],
+  },
+];
+
+@Injectable()
+export class MoviesService {
+  private readonly logger = new Logger(MoviesService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
+
+  async findAll(params: {
+    status?: MovieStatus;
+    search?: string;
+    genreId?: number;
+  }) {
+    try {
+      const { status, search, genreId } = params;
+      const where: any = {};
+      if (status) where.status = status;
+      if (search) {
+        where.OR = [
+          { title: { contains: search, mode: 'insensitive' } },
+          { director: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+      if (genreId) {
+        where.genres = { some: { genreId } };
+      }
+
+      const movies = await this.prisma.movie.findMany({
+        where,
+        include: {
+          genres: { include: { genre: true } },
+        },
+        orderBy: { releaseDate: 'desc' },
+      });
+
+      if (movies && movies.length > 0) return movies;
+      return FALLBACK_MOVIES as any;
+    } catch (err: any) {
+      this.logger.warn(`PostgreSQL chưa sẵn sàng, trả về danh sách phim mẫu dự phòng: ${err.message}`);
+      return FALLBACK_MOVIES as any;
+    }
+  }
+
+  async getLandingData() {
+    try {
+      const cacheKey = 'cache:home:landing';
+      const cached = await this.redis.getCache<any>(cacheKey);
+      if (cached) return cached;
+
+      const [nowShowing, comingSoon, theaters, genres] = await Promise.all([
+        this.prisma.movie.findMany({
+          where: { status: MovieStatus.NOW_SHOWING },
+          include: { genres: { include: { genre: true } } },
+          take: 8,
+        }),
+        this.prisma.movie.findMany({
+          where: { status: MovieStatus.COMING_SOON },
+          include: { genres: { include: { genre: true } } },
+          take: 6,
+        }),
+        this.prisma.theater.findMany({
+          take: 5,
+          include: { rooms: true },
+        }),
+        this.prisma.genre.findMany(),
+      ]);
+
+      if (nowShowing.length > 0) {
+        const result = {
+          heroMovies: nowShowing.slice(0, 4),
+          nowShowing,
+          comingSoon,
+          theaters,
+          genres,
+        };
+        await this.redis.setCache(cacheKey, result, 120);
+        return result;
+      }
+    } catch (err: any) {
+      this.logger.warn(`Lỗi khi lấy dữ liệu landing từ DB: ${err.message}. Sử dụng dữ liệu mẫu dự phòng.`);
+    }
+
+    // Fallback data khi DB chưa migrate/seed hoặc PostgreSQL chưa bật
+    const nowShowingFallback = FALLBACK_MOVIES.filter((m) => m.status === 'NOW_SHOWING');
+    const comingSoonFallback = FALLBACK_MOVIES.filter((m) => m.status === 'COMING_SOON');
+
+    return {
+      heroMovies: nowShowingFallback.slice(0, 3),
+      nowShowing: nowShowingFallback,
+      comingSoon: comingSoonFallback,
+      theaters: FALLBACK_THEATERS,
+      genres: [
+        { id: 1, name: 'Tình Cảm', slug: 'tinh-cam' },
+        { id: 2, name: 'Hành Động', slug: 'hanh-dong' },
+        { id: 3, name: 'Khoa Học Viễn Tưởng', slug: 'khoa-hoc-vien-tuong' },
+        { id: 4, name: 'Kinh Dị', slug: 'kinh-di' },
+        { id: 5, name: 'Hoạt Hình', slug: 'hoat-hinh' },
+      ],
+    };
+  }
+
+  async findById(id: number) {
+    try {
+      const movie = await this.prisma.movie.findUnique({
+        where: { id },
+        include: {
+          genres: { include: { genre: true } },
+          showtimes: {
+            where: { startTime: { gte: new Date() } },
+            include: { room: { include: { theater: true } } },
+            orderBy: { startTime: 'asc' },
+            take: 10,
+          },
+        },
+      });
+
+      if (movie) return movie;
+    } catch (err: any) {
+      this.logger.warn(`Lỗi khi tìm phim ID ${id} từ DB: ${err.message}`);
+    }
+
+    const fallback = FALLBACK_MOVIES.find((m) => m.id === id) || FALLBACK_MOVIES[0];
+    return {
+      ...fallback,
+      showtimes: [
+        {
+          id: 1,
+          movieId: fallback.id,
+          roomId: 1,
+          startTime: new Date(Date.now() + 2 * 3600 * 1000).toISOString(),
+          endTime: new Date(Date.now() + 4 * 3600 * 1000).toISOString(),
+          price: 105000,
+          room: { id: 1, name: 'Cinema 01', screenType: 'IMAX Laser 4K', theater: FALLBACK_THEATERS[0] },
+        },
+      ],
+    };
+  }
+}
