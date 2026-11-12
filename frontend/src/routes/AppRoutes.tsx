@@ -30,7 +30,7 @@ import { RoleRoute } from './RoleRoute';
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* 1. Public Storefront (Obsidian Aurora Dark Theme) */}
+      {/* 1. Public Storefront (CineCore Luminous Light Theme) */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/movies" element={<MoviesPage />} />

@@ -1,7 +1,7 @@
 {
-  "name": "cinemahub-monorepo",
+  "name": "cinecore-monorepo",
   "version": "1.0.0",
-  "description": "CinemaHub - Modern Cinema Booking Platform (NestJS + React + PostgreSQL + Redis)",
+  "description": "CineCore - Modern Cinema Booking Platform (NestJS + React + PostgreSQL + Redis)",
   "private": true,
   "workspaces": [
     "backend",

@@ -446,7 +446,7 @@ export const HomePage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-display text-2xl font-black text-slate-900">5 Cụm Rạp Hiện Đại Toàn Quốc</h2>
-            <p className="text-xs text-slate-500 mt-1">Trải nghiệm phòng chiếu đẳng cấp tại Hà Nội, TP.HCM và Đà Nẵng</p>
+            <p className="text-xs text-slate-500 mt-1">Trải nghiệm phòng chiếu đẳng cấp tại TP.HCM, Hà Nội, Đà Nẵng, Cần Thơ và Huế</p>
           </div>
           <Link to="/theaters" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
             Xem bản đồ rạp &rarr;

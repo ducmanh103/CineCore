@@ -184,6 +184,8 @@ export class BookingsService {
    */
   @Cron('*/2 * * * *')
   async cleanExpiredPendingTickets() {
+    if (!this.prisma.isConnected()) return;
+
     try {
       const now = new Date();
       const expiredTickets = await this.prisma.ticket.findMany({

@@ -21,8 +21,7 @@ export const LoginPage: React.FC = () => {
       const res = await api.post<any, any>('/auth/login', { username, password });
 
       if (res.requiresMfa) {
-        const devParam = res.devOtp ? `&devOtp=${encodeURIComponent(res.devOtp)}` : '';
-        navigate(`/auth/verify-mfa?challengeId=${res.challengeId}${devParam}`);
+        navigate(`/auth/verify-mfa?challengeId=${res.challengeId}`);
         return;
       }
 

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { PaymentStatus, TicketStatus } from '@prisma/client';
+import { VietnamTime } from '../../common/utils/vietnam-time.util';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -19,17 +20,23 @@ export class PaymentsService {
    * Tạo URL thanh toán VNPay Sandbox
    */
   async createVnpayUrl(bookingCode: string, ipAddr = '127.0.0.1') {
-    const payment = await this.prisma.payment.findUnique({
-      where: { bookingCode },
-      include: { tickets: true },
-    });
+    let paymentAmount = 100000;
 
-    if (!payment) {
-      throw new BadRequestException('Không tìm thấy thông tin thanh toán.');
-    }
+    if (this.prisma.isConnected()) {
+      const payment = await this.prisma.payment.findUnique({
+        where: { bookingCode },
+        include: { tickets: true },
+      });
 
-    if (payment.status !== PaymentStatus.PENDING) {
-      throw new BadRequestException('Đơn hàng đã được thanh toán hoặc đã hủy.');
+      if (!payment) {
+        throw new BadRequestException('Không tìm thấy thông tin thanh toán.');
+      }
+
+      if (payment.status !== PaymentStatus.PENDING) {
+        throw new BadRequestException('Đơn hàng đã được thanh toán hoặc đã hủy.');
+      }
+
+      paymentAmount = Number(payment.amount);
     }
 
     const tmnCode = this.configService.get<string>('VNPAY_TMN_CODE', 'SANDBOX_TMN');
@@ -43,11 +50,16 @@ export class PaymentsService {
       'http://localhost:5173/booking/vnpay-return',
     );
 
-    const now = new Date();
-    const createDate = now
-      .toISOString()
-      .replace(/[-:T.Z]/g, '')
-      .slice(0, 14);
+    // Múi giờ Việt Nam (GMT+7) định dạng yyyyMMddHHmmss
+    const vnNow = VietnamTime.now();
+    const createDate = [
+      vnNow.getUTCFullYear(),
+      String(vnNow.getUTCMonth() + 1).padStart(2, '0'),
+      String(vnNow.getUTCDate()).padStart(2, '0'),
+      String(vnNow.getUTCHours()).padStart(2, '0'),
+      String(vnNow.getUTCMinutes()).padStart(2, '0'),
+      String(vnNow.getUTCSeconds()).padStart(2, '0'),
+    ].join('');
 
     const vnpParams: Record<string, string> = {
       vnp_Version: '2.1.0',
@@ -58,7 +70,7 @@ export class PaymentsService {
       vnp_TxnRef: bookingCode,
       vnp_OrderInfo: `Thanh toan ve xem phim ma ${bookingCode}`,
       vnp_OrderType: 'other',
-      vnp_Amount: (Number(payment.amount) * 100).toString(),
+      vnp_Amount: (paymentAmount * 100).toString(),
       vnp_ReturnUrl: returnUrl,
       vnp_IpAddr: ipAddr,
       vnp_CreateDate: createDate,
@@ -106,7 +118,7 @@ export class PaymentsService {
     const responseCode = query['vnp_ResponseCode'];
     const isSuccess = responseCode === '00';
 
-    if (bookingCode) {
+    if (bookingCode && this.prisma.isConnected()) {
       const payment = await this.prisma.payment.findUnique({
         where: { bookingCode },
         include: { tickets: true },

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -14,11 +14,7 @@ import { useAuthStore } from '../../store/authStore';
 
 export const AdminLayout: React.FC = () => {
   const location = useLocation();
-  const { user, checkAuth } = useAuthStore();
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+  const { user } = useAuthStore();
 
   const navItems = [
     { label: 'Tổng Quan (Dashboard)', path: '/admin', icon: LayoutDashboard },

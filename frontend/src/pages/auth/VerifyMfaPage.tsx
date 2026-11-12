@@ -7,8 +7,7 @@ import { ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 export const VerifyMfaPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const challengeId = searchParams.get('challengeId') || '';
-  const devOtpParam = searchParams.get('devOtp') || '';
-  const [otp, setOtp] = useState(devOtpParam || '');
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { setUser } = useAuthStore();
@@ -60,23 +59,14 @@ export const VerifyMfaPage: React.FC = () => {
           </div>
         )}
 
-        {/* Local dev helper badge */}
-        <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 space-y-2">
-          <div className="flex items-center justify-between font-bold">
-            <span className="flex items-center gap-1.5">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Môi trường Local Dev
-            </span>
-            <button
-              type="button"
-              onClick={() => setOtp(devOtpParam || '123456')}
-              className="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[11px] font-bold hover:bg-amber-700 transition-colors shadow-sm"
-            >
-              ⚡ Điền nhanh {devOtpParam || '123456'}
-            </button>
+        {/* Telegram OTP Notice */}
+        <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200/80 text-xs text-indigo-950 space-y-2">
+          <div className="flex items-center gap-2 font-bold text-indigo-700">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Mã OTP đã được gửi đến Telegram Bot</span>
           </div>
           <p className="text-[11px] text-slate-600 leading-relaxed">
-            Mã MFA OTP đã được gửi về <b>Telegram Bot</b> (và in to tại Terminal Backend). Bạn có thể nhấn nút trên hoặc dùng mã test mặc định <code className="font-mono font-bold text-amber-700 bg-white px-1.5 py-0.5 rounded border border-amber-200">123456</code>.
+            Vui lòng kiểm tra tin nhắn từ <b>Telegram Bot</b> của hệ thống để lấy mã 6 chữ số (Mã cũng được in tại Terminal Backend phục vụ kiểm thử).
           </p>
         </div>
 

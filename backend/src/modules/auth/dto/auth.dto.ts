@@ -37,17 +37,6 @@ export class RegisterDto {
   password: string;
 }
 
-export class VerifyOtpDto {
-  @ApiProperty({ example: 'customer2@gmail.com', description: 'Email' })
-  @IsEmail()
-  email: string;
-
-  @ApiProperty({ example: '123456', description: 'Mã xác thực OTP 6 số' })
-  @IsString()
-  @Matches(/^[0-9]{6}$/, { message: 'Mã OTP phải gồm 6 chữ số' })
-  otp: string;
-}
-
 export class VerifyMfaDto {
   @ApiProperty({ example: 'mfa-challenge-uuid', description: 'Challenge Token MFA' })
   @IsString()

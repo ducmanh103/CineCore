@@ -1,7 +1,7 @@
 {
-  "name": "cinemahub-backend",
+  "name": "cinecore-backend",
   "version": "1.0.0",
-  "description": "CinemaHub Backend API with NestJS 11, Prisma, PostgreSQL 16 & Redis 7",
+  "description": "CineCore Backend API with NestJS 11, Prisma, PostgreSQL 16 & Redis 7",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -28,14 +28,12 @@
     "@nestjs/websockets": "^11.0.9",
     "@prisma/client": "^6.4.1",
     "axios": "^1.8.1",
-    "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
     "ioredis": "^5.5.0",
-    "nodemailer": "^6.10.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
@@ -46,7 +44,6 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.2",
     "@nestjs/schematics": "^11.0.0",
-    "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.8",
     "@types/express": "^5.0.0",

@@ -1,17 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { AiConciergeWidget } from '../chatbot/AiConciergeWidget';
-import { useAuthStore } from '../../store/authStore';
 
 export const PublicLayout: React.FC = () => {
-  const { checkAuth } = useAuthStore();
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFD] text-slate-800 relative selection:bg-indigo-600 selection:text-white">
       {/* Luminous Top Radial Glow */}

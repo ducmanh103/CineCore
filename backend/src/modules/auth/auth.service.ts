@@ -11,7 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PiiCryptoService } from '../../common/crypto/pii-crypto.service';
-import { LoginDto, RegisterDto, VerifyMfaDto, VerifyOtpDto } from './dto/auth.dto';
+import { LoginDto, RegisterDto, VerifyMfaDto } from './dto/auth.dto';
 import { RoleName, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
@@ -39,6 +39,7 @@ export class AuthService implements OnModuleInit {
         id: 1,
         username: 'admin',
         passwordHash: bcrypt.hashSync('Admin@123456', 10),
+        altPasswordHash: bcrypt.hashSync('Admin@123', 10),
         fullName: this.piiCrypto.encrypt('Quản Trị Viên'),
         email: this.piiCrypto.encrypt('admin@cinecore.vn'),
         emailHash: this.piiCrypto.computeEmailHash('admin@cinecore.vn'),
@@ -104,8 +105,8 @@ export class AuthService implements OnModuleInit {
 
     const hashToCompare = user ? user.passwordHash : DUMMY_HASH;
     let isPasswordValid = await bcrypt.compare(dto.password, hashToCompare);
-    if (!isPasswordValid && username === 'admin' && (dto.password === 'Admin@123' || dto.password === 'Admin@123456')) {
-      isPasswordValid = true;
+    if (!isPasswordValid && user?.altPasswordHash) {
+      isPasswordValid = await bcrypt.compare(dto.password, user.altPasswordHash);
     }
 
     if (!user || !isPasswordValid || user.status !== UserStatus.ACTIVE) {
@@ -159,7 +160,6 @@ export class AuthService implements OnModuleInit {
         requiresMfa: true,
         challengeId,
         message: 'Mã xác thực 2 lớp (OTP) đã được gửi đến Telegram Bot của Quản trị viên.',
-        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
       };
     }
 
@@ -168,23 +168,10 @@ export class AuthService implements OnModuleInit {
   }
 
   async verifyMfa(dto: VerifyMfaDto) {
-    const isDev = process.env.NODE_ENV !== 'production';
     const key = `mfa:challenge:${dto.challengeId}`;
     const session = await this.redis.getOtpSession<{ userId: number; otp: string; attempts: number }>(key);
 
     if (!session) {
-      if (isDev && dto.otp === '123456') {
-        let adminUser: any = null;
-        try {
-          adminUser = await this.prisma.user.findFirst({
-            where: { role: { name: { in: [RoleName.ADMIN, RoleName.STAFF] } } },
-            include: { role: true },
-          });
-        } catch {
-          adminUser = this.mockUsers.find((u) => u.role.name === RoleName.ADMIN);
-        }
-        if (adminUser) return this.generateAuthTokens(adminUser);
-      }
       throw new BadRequestException('Phiên xác thực MFA đã hết hạn hoặc không tồn tại.');
     }
 
@@ -193,9 +180,7 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Bạn đã nhập sai mã MFA quá 5 lần. Vui lòng đăng nhập lại.');
     }
 
-    // So sánh thời gian thực (Constant-time compare) hoặc cho phép mã test 123456 ở môi trường dev
-    const isDevMasterCode = isDev && dto.otp === '123456';
-    const isMatch = isDevMasterCode || (
+    const isMatch = (
       dto.otp.length === session.otp.length &&
       crypto.timingSafeEqual(Buffer.from(dto.otp), Buffer.from(session.otp))
     );
@@ -292,67 +277,6 @@ export class AuthService implements OnModuleInit {
       `🎉 <b>Thành viên mới đăng ký</b>: <b>${user.username}</b> (${dto.fullName})\n` +
       `📧 Email: ${dto.email} | 📱 SĐT: ${dto.phone || 'Chưa cung cấp'}`,
     );
-
-    return this.generateAuthTokens(user);
-  }
-
-  async verifyEmailOtp(dto: VerifyOtpDto) {
-    const isDev = process.env.NODE_ENV !== 'production';
-    const emailHash = this.piiCrypto.computeEmailHash(dto.email);
-    const sessionRef = await this.redis.getOtpSession<{ token: string; otp: string }>(`reg:email:${emailHash}`);
-
-    if (!sessionRef) {
-      throw new BadRequestException('Mã kích hoạt không hợp lệ hoặc đã hết hạn.');
-    }
-
-    const isDevMasterCode = isDev && dto.otp === '123456';
-    if (sessionRef.otp !== dto.otp && !isDevMasterCode) {
-      throw new BadRequestException('Mã OTP xác thực không chính xác.');
-    }
-
-    const pendingData = await this.redis.getOtpSession<any>(`reg:pending:${sessionRef.token}`);
-    if (!pendingData) {
-      throw new BadRequestException('Phiên đăng ký không tồn tại.');
-    }
-
-    let user: any = null;
-    try {
-      const customerRole = await this.prisma.role.findUnique({
-        where: { name: RoleName.CUSTOMER },
-      });
-      user = await this.prisma.user.create({
-        data: {
-          username: pendingData.username,
-          passwordHash: pendingData.passwordHash,
-          fullName: pendingData.fullName,
-          email: pendingData.email,
-          emailHash: pendingData.emailHash,
-          phone: pendingData.phone,
-          roleId: customerRole?.id || 3,
-          status: UserStatus.ACTIVE,
-        },
-        include: { role: true },
-      });
-    } catch {
-      user = {
-        id: this.mockUsers.length + 1,
-        username: pendingData.username,
-        passwordHash: pendingData.passwordHash,
-        fullName: pendingData.fullName,
-        email: pendingData.email,
-        emailHash: pendingData.emailHash,
-        phone: pendingData.phone,
-        status: UserStatus.ACTIVE,
-        roleId: 3,
-        securityStamp: crypto.randomUUID(),
-        createdAt: new Date(),
-        role: { id: 3, name: RoleName.CUSTOMER, description: 'Khách hàng' },
-      };
-      this.mockUsers.push(user);
-    }
-
-    await this.redis.deleteKey(`reg:pending:${sessionRef.token}`);
-    await this.redis.deleteKey(`reg:email:${emailHash}`);
 
     return this.generateAuthTokens(user);
   }
