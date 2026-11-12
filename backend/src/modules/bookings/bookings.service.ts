@@ -163,20 +163,27 @@ export class BookingsService {
    * Lấy danh sách vé của người dùng hiện tại
    */
   async getUserTickets(userId: number) {
-    return this.prisma.ticket.findMany({
-      where: { userId },
-      include: {
-        seat: true,
-        showtime: {
+    if (this.prisma.isConnected()) {
+      try {
+        return await this.prisma.ticket.findMany({
+          where: { userId },
           include: {
-            movie: true,
-            room: { include: { theater: true } },
+            seat: true,
+            showtime: {
+              include: {
+                movie: true,
+                room: { include: { theater: true } },
+              },
+            },
+            payment: true,
           },
-        },
-        payment: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+          orderBy: { createdAt: 'desc' },
+        });
+      } catch {
+        return [];
+      }
+    }
+    return [];
   }
 
   /**

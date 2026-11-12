@@ -94,12 +94,17 @@ export class AuthService implements OnModuleInit {
 
     // 2. Tìm người dùng
     let user: any = null;
-    try {
-      user = await this.prisma.user.findUnique({
-        where: { username },
-        include: { role: true },
-      });
-    } catch {
+    if (this.prisma.isConnected()) {
+      try {
+        user = await this.prisma.user.findUnique({
+          where: { username },
+          include: { role: true },
+        });
+      } catch {
+        user = null;
+      }
+    }
+    if (!user) {
       user = this.mockUsers.find((u) => u.username === username) || null;
     }
 
@@ -216,13 +221,18 @@ export class AuthService implements OnModuleInit {
 
     // Kiểm tra trùng username hoặc email
     let existing: any = null;
-    try {
-      existing = await this.prisma.user.findFirst({
-        where: {
-          OR: [{ username }, { emailHash }],
-        },
-      });
-    } catch {
+    if (this.prisma.isConnected()) {
+      try {
+        existing = await this.prisma.user.findFirst({
+          where: {
+            OR: [{ username }, { emailHash }],
+          },
+        });
+      } catch {
+        existing = null;
+      }
+    }
+    if (!existing) {
       existing = this.mockUsers.find((u) => u.username === username || u.emailHash === emailHash) || null;
     }
 
@@ -235,26 +245,32 @@ export class AuthService implements OnModuleInit {
     const securityStamp = crypto.randomUUID();
 
     let user: any = null;
-    try {
-      const customerRole = await this.prisma.role.findUnique({
-        where: { name: RoleName.CUSTOMER },
-      });
+    if (this.prisma.isConnected()) {
+      try {
+        const customerRole = await this.prisma.role.findUnique({
+          where: { name: RoleName.CUSTOMER },
+        });
 
-      user = await this.prisma.user.create({
-        data: {
-          username,
-          passwordHash,
-          fullName: this.piiCrypto.encrypt(dto.fullName),
-          email: this.piiCrypto.encrypt(dto.email),
-          emailHash,
-          phone: dto.phone,
-          roleId: customerRole?.id || 3,
-          status: UserStatus.ACTIVE,
-          securityStamp,
-        },
-        include: { role: true },
-      });
-    } catch {
+        user = await this.prisma.user.create({
+          data: {
+            username,
+            passwordHash,
+            fullName: this.piiCrypto.encrypt(dto.fullName),
+            email: this.piiCrypto.encrypt(dto.email),
+            emailHash,
+            phone: dto.phone,
+            roleId: customerRole?.id || 3,
+            status: UserStatus.ACTIVE,
+            securityStamp,
+          },
+          include: { role: true },
+        });
+      } catch {
+        user = null;
+      }
+    }
+
+    if (!user) {
       user = {
         id: this.mockUsers.length + 1,
         username,
@@ -283,12 +299,17 @@ export class AuthService implements OnModuleInit {
 
   async getProfile(userId: number) {
     let user: any = null;
-    try {
-      user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: { role: true },
-      });
-    } catch {
+    if (this.prisma.isConnected()) {
+      try {
+        user = await this.prisma.user.findUnique({
+          where: { id: userId },
+          include: { role: true },
+        });
+      } catch {
+        user = null;
+      }
+    }
+    if (!user) {
       user = this.mockUsers.find((u) => u.id === userId) || null;
     }
 

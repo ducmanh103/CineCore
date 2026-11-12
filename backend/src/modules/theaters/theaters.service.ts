@@ -86,45 +86,49 @@ export class TheatersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll() {
-    try {
-      const theaters = await this.prisma.theater.findMany({
-        include: {
-          rooms: {
-            include: {
-              _count: {
-                select: { seats: true },
+    if (this.prisma.isConnected()) {
+      try {
+        const theaters = await this.prisma.theater.findMany({
+          include: {
+            rooms: {
+              include: {
+                _count: {
+                  select: { seats: true },
+                },
               },
             },
           },
-        },
-        orderBy: { id: 'asc' },
-      });
+          orderBy: { id: 'asc' },
+        });
 
-      if (theaters.length > 0) return theaters;
-    } catch (err: any) {
-      this.logger.warn(`PostgreSQL chưa bật, trả về danh sách rạp dự phòng: ${err.message}`);
+        if (theaters.length > 0) return theaters;
+      } catch (err: any) {
+        this.logger.warn(`PostgreSQL chưa bật, trả về danh sách rạp dự phòng: ${err.message}`);
+      }
     }
 
     return FALLBACK_THEATERS;
   }
 
   async findById(id: number) {
-    try {
-      const theater = await this.prisma.theater.findUnique({
-        where: { id },
-        include: {
-          rooms: {
-            include: {
-              seats: {
-                orderBy: [{ seatRow: 'asc' }, { seatNumber: 'asc' }],
+    if (this.prisma.isConnected()) {
+      try {
+        const theater = await this.prisma.theater.findUnique({
+          where: { id },
+          include: {
+            rooms: {
+              include: {
+                seats: {
+                  orderBy: [{ seatRow: 'asc' }, { seatNumber: 'asc' }],
+                },
               },
             },
           },
-        },
-      });
+        });
 
-      if (theater) return theater;
-    } catch {}
+        if (theater) return theater;
+      } catch {}
+    }
 
     const found = FALLBACK_THEATERS.find((t) => t.id === id) || FALLBACK_THEATERS[0];
     return found;

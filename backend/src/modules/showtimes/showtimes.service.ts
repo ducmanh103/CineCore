@@ -104,123 +104,127 @@ export class ShowtimesService {
     theaterId?: number;
     date?: string; // YYYY-MM-DD
   }) {
-    try {
-      const { movieId, theaterId, date } = params;
-      const where: any = {};
+    if (this.prisma.isConnected()) {
+      try {
+        const { movieId, theaterId, date } = params;
+        const where: any = {};
 
-      if (movieId) where.movieId = movieId;
-      if (theaterId) where.room = { theaterId };
+        if (movieId) where.movieId = movieId;
+        if (theaterId) where.room = { theaterId };
 
-      if (date) {
-        const startOfDay = new Date(`${date}T00:00:00.000Z`);
-        const endOfDay = new Date(`${date}T23:59:59.999Z`);
-        where.startTime = { gte: startOfDay, lte: endOfDay };
-      } else {
-        where.startTime = { gte: new Date() };
+        if (date) {
+          const startOfDay = new Date(`${date}T00:00:00.000Z`);
+          const endOfDay = new Date(`${date}T23:59:59.999Z`);
+          where.startTime = { gte: startOfDay, lte: endOfDay };
+        } else {
+          where.startTime = { gte: new Date() };
+        }
+
+        const showtimes = await this.prisma.showtime.findMany({
+          where,
+          include: {
+            movie: {
+              select: { id: true, title: true, posterUrl: true, duration: true, ageRating: true },
+            },
+            room: {
+              include: { theater: true },
+            },
+          },
+          orderBy: { startTime: 'asc' },
+        });
+
+        if (showtimes.length > 0) return showtimes;
+      } catch (err: any) {
+        this.logger.warn(`Lỗi truy vấn DB: ${err.message}`);
       }
-
-      const showtimes = await this.prisma.showtime.findMany({
-        where,
-        include: {
-          movie: {
-            select: { id: true, title: true, posterUrl: true, duration: true, ageRating: true },
-          },
-          room: {
-            include: { theater: true },
-          },
-        },
-        orderBy: { startTime: 'asc' },
-      });
-
-      if (showtimes.length > 0) return showtimes;
-    } catch (err: any) {
-      this.logger.warn(`PostgreSQL chưa bật, trả về danh sách lịch chiếu dự phòng: ${err.message}`);
     }
 
     return FALLBACK_SHOWTIMES as any;
   }
 
   async getShowtimeWithSeats(showtimeId: number, currentUserId?: number) {
-    try {
-      const showtime = await this.prisma.showtime.findUnique({
-        where: { id: showtimeId },
-        include: {
-          movie: true,
-          room: {
-            include: {
-              theater: true,
-              seats: {
-                orderBy: [{ seatRow: 'asc' }, { seatNumber: 'asc' }],
+    if (this.prisma.isConnected()) {
+      try {
+        const showtime = await this.prisma.showtime.findUnique({
+          where: { id: showtimeId },
+          include: {
+            movie: true,
+            room: {
+              include: {
+                theater: true,
+                seats: {
+                  orderBy: [{ seatRow: 'asc' }, { seatNumber: 'asc' }],
+                },
               },
             },
           },
-        },
-      });
-
-      if (showtime && showtime.room?.seats?.length > 0) {
-        const activeTickets = await this.prisma.ticket.findMany({
-          where: {
-            showtimeId,
-            status: { in: [TicketStatus.BOOKED, TicketStatus.PENDING] },
-          },
         });
 
-        const ticketMap = new Map<number, { status: TicketStatus; userId: number }>();
-        activeTickets.forEach((t) => {
-          ticketMap.set(t.seatId, { status: t.status, userId: t.userId });
-        });
+        if (showtime && showtime.room?.seats?.length > 0) {
+          const activeTickets = await this.prisma.ticket.findMany({
+            where: {
+              showtimeId,
+              status: { in: [TicketStatus.BOOKED, TicketStatus.PENDING] },
+            },
+          });
 
-        const seatsWithStatus = await Promise.all(
-          showtime.room.seats.map(async (seat) => {
-            const ticket = ticketMap.get(seat.id);
-            let seatStatus = 'AVAILABLE';
+          const ticketMap = new Map<number, { status: TicketStatus; userId: number }>();
+          activeTickets.forEach((t) => {
+            ticketMap.set(t.seatId, { status: t.status, userId: t.userId });
+          });
 
-            if (ticket) {
-              if (ticket.status === TicketStatus.BOOKED) {
-                seatStatus = 'BOOKED';
-              } else if (ticket.status === TicketStatus.PENDING) {
-                seatStatus = currentUserId && ticket.userId === currentUserId ? 'MY_PENDING' : 'PENDING';
-              }
-            } else {
-              const lockKey = `seat:lock:${showtimeId}:${seat.id}`;
-              const client = this.redis.getClient();
-              if (client && client.status === 'ready') {
-                const lockedBy = await client.get(lockKey);
-                if (lockedBy) {
-                  seatStatus =
-                    currentUserId && lockedBy === currentUserId.toString()
-                      ? 'MY_PENDING'
-                      : 'PENDING';
+          const seatsWithStatus = await Promise.all(
+            showtime.room.seats.map(async (seat) => {
+              const ticket = ticketMap.get(seat.id);
+              let seatStatus = 'AVAILABLE';
+
+              if (ticket) {
+                if (ticket.status === TicketStatus.BOOKED) {
+                  seatStatus = 'BOOKED';
+                } else if (ticket.status === TicketStatus.PENDING) {
+                  seatStatus = currentUserId && ticket.userId === currentUserId ? 'MY_PENDING' : 'PENDING';
+                }
+              } else {
+                const lockKey = `seat:lock:${showtimeId}:${seat.id}`;
+                const client = this.redis.getClient();
+                if (client && client.status === 'ready') {
+                  const lockedBy = await client.get(lockKey);
+                  if (lockedBy) {
+                    seatStatus =
+                      currentUserId && lockedBy === currentUserId.toString()
+                        ? 'MY_PENDING'
+                        : 'PENDING';
+                  }
                 }
               }
-            }
 
-            return {
-              ...seat,
-              status: seatStatus,
-            };
-          }),
-        );
+              return {
+                ...seat,
+                status: seatStatus,
+              };
+            }),
+          );
 
-        return {
-          showtime: {
-            id: showtime.id,
-            startTime: showtime.startTime,
-            endTime: showtime.endTime,
-            price: showtime.price,
-            movie: showtime.movie,
-            theater: showtime.room.theater,
-            room: {
-              id: showtime.room.id,
-              name: showtime.room.name,
-              screenType: showtime.room.screenType,
+          return {
+            showtime: {
+              id: showtime.id,
+              startTime: showtime.startTime,
+              endTime: showtime.endTime,
+              price: showtime.price,
+              movie: showtime.movie,
+              theater: showtime.room.theater,
+              room: {
+                id: showtime.room.id,
+                name: showtime.room.name,
+                screenType: showtime.room.screenType,
+              },
             },
-          },
-          seats: seatsWithStatus,
-        };
+            seats: seatsWithStatus,
+          };
+        }
+      } catch (err: any) {
+        this.logger.warn(`Lỗi khi lấy sơ đồ ghế từ DB: ${err.message}. Sử dụng phòng chiếu mẫu.`);
       }
-    } catch (err: any) {
-      this.logger.warn(`Lỗi khi lấy sơ đồ ghế từ DB: ${err.message}. Sử dụng phòng chiếu mẫu.`);
     }
 
     // Phòng chiếu mẫu 48 ghế (A-F, 1-8, hàng E & F là VIP)

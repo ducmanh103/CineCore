@@ -461,15 +461,17 @@ export class MoviesService {
         where.genres = { some: { genreId } };
       }
 
-      const movies = await this.prisma.movie.findMany({
-        where,
-        include: {
-          genres: { include: { genre: true } },
-        },
-        orderBy: { releaseDate: 'desc' },
-      });
+      if (this.prisma.isConnected()) {
+        const movies = await this.prisma.movie.findMany({
+          where,
+          include: {
+            genres: { include: { genre: true } },
+          },
+          orderBy: { releaseDate: 'desc' },
+        });
 
-      if (movies && movies.length > 0) return movies;
+        if (movies && movies.length > 0) return movies;
+      }
       return FALLBACK_MOVIES as any;
     } catch (err: any) {
       this.logger.warn(`PostgreSQL chưa sẵn sàng, trả về danh sách phim mẫu dự phòng: ${err.message}`);
@@ -483,34 +485,36 @@ export class MoviesService {
       const cached = await this.redis.getCache<any>(cacheKey);
       if (cached) return cached;
 
-      const [nowShowing, comingSoon, theaters, genres] = await Promise.all([
-        this.prisma.movie.findMany({
-          where: { status: MovieStatus.NOW_SHOWING },
-          include: { genres: { include: { genre: true } } },
-          take: 8,
-        }),
-        this.prisma.movie.findMany({
-          where: { status: MovieStatus.COMING_SOON },
-          include: { genres: { include: { genre: true } } },
-          take: 6,
-        }),
-        this.prisma.theater.findMany({
-          take: 5,
-          include: { rooms: true },
-        }),
-        this.prisma.genre.findMany(),
-      ]);
+      if (this.prisma.isConnected()) {
+        const [nowShowing, comingSoon, theaters, genres] = await Promise.all([
+          this.prisma.movie.findMany({
+            where: { status: MovieStatus.NOW_SHOWING },
+            include: { genres: { include: { genre: true } } },
+            take: 8,
+          }),
+          this.prisma.movie.findMany({
+            where: { status: MovieStatus.COMING_SOON },
+            include: { genres: { include: { genre: true } } },
+            take: 6,
+          }),
+          this.prisma.theater.findMany({
+            take: 5,
+            include: { rooms: true },
+          }),
+          this.prisma.genre.findMany(),
+        ]);
 
-      if (nowShowing.length > 0) {
-        const result = {
-          heroMovies: nowShowing.slice(0, 4),
-          nowShowing,
-          comingSoon,
-          theaters,
-          genres,
-        };
-        await this.redis.setCache(cacheKey, result, 120);
-        return result;
+        if (nowShowing.length > 0) {
+          const result = {
+            heroMovies: nowShowing.slice(0, 4),
+            nowShowing,
+            comingSoon,
+            theaters,
+            genres,
+          };
+          await this.redis.setCache(cacheKey, result, 120);
+          return result;
+        }
       }
     } catch (err: any) {
       this.logger.warn(`Lỗi khi lấy dữ liệu landing từ DB: ${err.message}. Sử dụng dữ liệu mẫu dự phòng.`);
@@ -536,23 +540,25 @@ export class MoviesService {
   }
 
   async findById(id: number) {
-    try {
-      const movie = await this.prisma.movie.findUnique({
-        where: { id },
-        include: {
-          genres: { include: { genre: true } },
-          showtimes: {
-            where: { startTime: { gte: new Date() } },
-            include: { room: { include: { theater: true } } },
-            orderBy: { startTime: 'asc' },
-            take: 10,
+    if (this.prisma.isConnected()) {
+      try {
+        const movie = await this.prisma.movie.findUnique({
+          where: { id },
+          include: {
+            genres: { include: { genre: true } },
+            showtimes: {
+              where: { startTime: { gte: new Date() } },
+              include: { room: { include: { theater: true } } },
+              orderBy: { startTime: 'asc' },
+              take: 10,
+            },
           },
-        },
-      });
+        });
 
-      if (movie) return movie;
-    } catch (err: any) {
-      this.logger.warn(`Lỗi khi tìm phim ID ${id} từ DB: ${err.message}`);
+        if (movie) return movie;
+      } catch (err: any) {
+        this.logger.warn(`Lỗi khi tìm phim ID ${id} từ DB: ${err.message}`);
+      }
     }
 
     const fallback = FALLBACK_MOVIES.find((m) => m.id === id) || FALLBACK_MOVIES[0];
