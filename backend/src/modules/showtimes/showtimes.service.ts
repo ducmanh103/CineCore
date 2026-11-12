@@ -240,12 +240,12 @@ export class ShowtimesService {
           seatRow: r,
           seatNumber: num,
           seatType: isVip ? 'VIP' : 'STANDARD',
-          status: (r === 'C' && (num === 4 || num === 5)) ? 'BOOKED' : 'AVAILABLE',
+          status: 'AVAILABLE',
         });
       }
     }
 
-    const st = FALLBACK_SHOWTIMES[0];
+    const st = FALLBACK_SHOWTIMES.find((s) => s.id === showtimeId) || FALLBACK_SHOWTIMES[0];
     return {
       showtime: {
         id: st.id,
