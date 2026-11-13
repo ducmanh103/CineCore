@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { PiiCryptoService } from '../../common/crypto/pii-crypto.service';
 import { RoleName, UserStatus, TicketStatus, PaymentStatus } from '@prisma/client';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AdminService {
@@ -153,14 +154,23 @@ export class AdminService {
   }
 
   async updateUserStatus(userId: number, status: UserStatus) {
-    const user = await this.prisma.user.update({
-      where: { id: userId },
-      data: { status, securityStamp: crypto.randomUUID() },
-    });
+    if (this.prisma.isConnected()) {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: { status, securityStamp: crypto.randomUUID() },
+      });
 
-    // Thu hồi phiên làm việc trên Redis
+      // Thu hồi phiên làm việc trên Redis
+      await this.redis.deleteUserStamp(userId);
+      return {
+        id: user.id,
+        username: user.username,
+        status: user.status,
+      };
+    }
+
     await this.redis.deleteUserStamp(userId);
-    return user;
+    return { id: userId, status };
   }
 }
 

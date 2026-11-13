@@ -1,10 +1,11 @@
 import { Controller, Get, Patch, Param, ParseIntPipe, Body, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
+import { UpdateUserStatusDto } from './dto/admin.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { RoleName, UserStatus } from '@prisma/client';
+import { RoleName } from '@prisma/client';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -38,9 +39,9 @@ export class AdminController {
   @ApiOperation({ summary: 'Khóa / Mở khóa người dùng' })
   async updateStatus(
     @Param('id', ParseIntPipe) id: number,
-    @Body('status') status: UserStatus,
+    @Body() dto: UpdateUserStatusDto,
   ) {
-    return this.adminService.updateUserStatus(id, status);
+    return this.adminService.updateUserStatus(id, dto.status);
   }
 }
 

@@ -61,24 +61,29 @@ CineCore là nền tảng đặt vé xem phim trực tuyến và quản trị h�
 
 ```
 CineCore/
-|-- backend/                     # Mã nguồn Backend (NestJS)
-|   |-- prisma/                  # Lược đồ cơ sở dữ liệu & Kịch bản nạp dữ liệu mẫu
+|-- backend/                     # Mã nguồn Backend (NestJS 11)
+|   |-- prisma/                  # Lược đồ cơ sở dữ liệu (schema.prisma) & Seed dữ liệu
 |   |-- src/
-|   |   |-- common/              # Guards, Filters, Interceptors, Tiện ích mã hóa PII
-|   |   |-- modules/             # Auth, Movies, Theaters, Showtimes, Bookings, Payments, etc.
-|   |   `-- main.ts              # Điểm khởi chạy của ứng dụng Backend
+|   |   |-- common/              # Constants, Crypto (AES-256-GCM), Decorators, Filters, Guards, Interceptors, Utils
+|   |   |-- modules/             # Admin, Auth, Bookings, Chatbot, Movies, Notifications, Payments, Prisma, Redis, Showtimes, Storage, Theaters
+|   |   |-- app.module.ts        # Module gốc kết nối các phân hệ
+|   |   `-- main.ts              # Điểm khởi chạy của ứng dụng Backend & Swagger
+|   |-- uploads/                 # Thư mục lưu trữ tệp ảnh cục bộ (Magic Bytes & SSRF Guard)
 |   `-- package.json
-|-- frontend/                    # Mã nguồn Frontend (React + Vite)
+|-- frontend/                    # Mã nguồn Frontend (React 19 + Vite + TypeScript)
 |   |-- public/                  # Tài nguyên tĩnh (Hình ảnh poster, banner phim)
 |   |-- src/
-|   |   |-- api/                 # Cấu hình Axios Client
-|   |   |-- components/          # Layout, Carousel, Sơ đồ ghế, Modal, Widget Chatbot
-|   |   |-- pages/               # Trang công khai, Quy trình đặt vé, Trang quản trị Admin
+|   |   |-- api/                 # Cấu hình Axios Client & Interceptors
+|   |   |-- components/          # Booking, Chatbot, Layout, Movies
+|   |   |-- constants/           # Dữ liệu danh mục mặc định
+|   |   |-- pages/               # Public, Booking, Auth, Admin Portal
+|   |   |-- routes/              # Điều hướng và phân quyền Route (ProtectedRoute, RoleRoute)
 |   |   |-- store/               # Quản lý trạng thái ứng dụng (Zustand)
+|   |   |-- types/               # Định nghĩa kiểu dữ liệu TypeScript dùng chung
 |   |   `-- main.tsx             # Điểm khởi chạy của ứng dụng Frontend
 |   `-- package.json
 |-- docker-compose.local.yml     # Cấu hình Docker cho PostgreSQL 16 & Redis 7
-|-- .env.example                 # Mẫu cấu hình các biến môi trường
+|-- .env.example                 # Mẫu cấu hình các biến môi trường dùng chung toàn Monorepo
 |-- .gitignore                   # Quy tắc loại trừ mã nguồn, secrets và thư mục tạm
 `-- package.json                 # Cấu hình Monorepo Workspace
 ```
@@ -154,7 +159,7 @@ Sau khi hoàn tất quá trình nạp dữ liệu mẫu (`seed`), hệ thống s
 | Biến | Giá Trị Mặc Định / Ví Dụ | Mục Đích |
 | :--- | :--- | :--- |
 | `PORT` | `3000` | Cổng dịch vụ của Backend API |
-| `DATABASE_URL` | `postgresql://postgres:postgres123@localhost:5432/cinecore?schema=public` | Chuỗi kết nối đến cơ sở dữ liệu PostgreSQL |
+| `DATABASE_URL` | `postgresql://postgres:postgres123@localhost:5432/cinemahub?schema=public` | Chuỗi kết nối đến cơ sở dữ liệu PostgreSQL |
 | `REDIS_HOST` | `localhost` | Địa chỉ máy chủ Redis |
 | `REDIS_PORT` | `6379` | Cổng kết nối Redis |
 | `JWT_SECRET` | `cinecore_super_secret_jwt_access_token_key_...` | Khóa bí mật dùng để ký và xác thực Access Token |

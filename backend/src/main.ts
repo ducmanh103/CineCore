@@ -35,7 +35,8 @@ async function bootstrap() {
   );
 
   // Static files for uploaded images (/uploads)
-  app.useStaticAssets(path.join(process.cwd(), 'uploads'), {
+  const uploadsPath = path.resolve(__dirname, '..', 'uploads');
+  app.useStaticAssets(uploadsPath, {
     prefix: '/uploads/',
   });
 

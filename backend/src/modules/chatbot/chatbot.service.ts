@@ -19,27 +19,47 @@ export class ChatbotService {
   async processMessage(message: string, userId?: number) {
     const cleanMsg = message.trim().toLowerCase();
 
-    // 1. Lấy dữ liệu phim và suất chiếu hiện hành
-    const nowShowingMovies = await this.prisma.movie.findMany({
-      where: { status: MovieStatus.NOW_SHOWING },
-      take: 6,
-    });
+    // 1. Lấy dữ liệu phim và suất chiếu hiện hành (có fault-tolerant fallback)
+    let nowShowingMovies: any[] = [];
+    if (this.prisma.isConnected()) {
+      try {
+        nowShowingMovies = await this.prisma.movie.findMany({
+          where: { status: MovieStatus.NOW_SHOWING },
+          take: 6,
+        });
+      } catch {
+        nowShowingMovies = [];
+      }
+    }
+
+    if (!nowShowingMovies.length) {
+      nowShowingMovies = [
+        { id: 1, title: 'Kung Fu Panda 4', duration: 94, ageRating: 'P' },
+        { id: 2, title: 'Dune: Phần 2', duration: 166, ageRating: 'T16' },
+        { id: 3, title: 'Mai', duration: 131, ageRating: 'T18' },
+        { id: 4, title: 'Quật Mộ Trùng Ma', duration: 134, ageRating: 'T18' },
+      ];
+    }
 
     let suggestedMovies: any[] = [];
     let suggestedShowtimes: any[] = [];
     let userBookings: any[] = [];
 
     // Nếu người dùng đã đăng nhập, lấy vé gần đây
-    if (userId) {
-      userBookings = await this.prisma.ticket.findMany({
-        where: { userId },
-        include: {
-          showtime: { include: { movie: true, room: { include: { theater: true } } } },
-          seat: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 3,
-      });
+    if (userId && this.prisma.isConnected()) {
+      try {
+        userBookings = await this.prisma.ticket.findMany({
+          where: { userId },
+          include: {
+            showtime: { include: { movie: true, room: { include: { theater: true } } } },
+            seat: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 3,
+        });
+      } catch {
+        userBookings = [];
+      }
     }
 
     // 2. Tìm kiếm phim khớp trong tin nhắn

@@ -5,6 +5,7 @@ import {
   UseInterceptors,
   Body,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
@@ -36,6 +37,9 @@ export class StorageController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: UploadedFilePayload) {
+    if (!file || !file.buffer) {
+      throw new BadRequestException('Vui lòng chọn tệp ảnh cần tải lên.');
+    }
     const url = await this.storageService.saveFile(file.buffer, file.originalname);
     return { url };
   }
@@ -43,8 +47,12 @@ export class StorageController {
   @Post('remote')
   @ApiOperation({ summary: 'Tải ảnh từ remote URL về local (Chống SSRF)' })
   async downloadRemote(@Body('url') url: string) {
+    if (!url) {
+      throw new BadRequestException('Vui lòng cung cấp URL ảnh hợp lệ.');
+    }
     const localUrl = await this.storageService.downloadAndSaveRemoteUrl(url);
     return { url: localUrl };
   }
 }
+
 

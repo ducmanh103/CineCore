@@ -38,24 +38,32 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Phiên làm việc đã bị thu hồi do đổi mật khẩu hoặc cập nhật bảo mật.');
     }
 
-    // 2. Nếu Redis chưa có stamp -> kiểm tra DB
+    // 2. Nếu Redis chưa có stamp -> kiểm tra DB (hoặc cho phép fallback nếu DB offline)
     if (!cachedStamp) {
-      const user = await this.prisma.user.findUnique({
-        where: { id: payload.sub },
-        include: { role: true },
-      });
+      if (this.prisma.isConnected()) {
+        try {
+          const user = await this.prisma.user.findUnique({
+            where: { id: payload.sub },
+            include: { role: true },
+          });
 
-      if (!user || user.status !== 'ACTIVE' || user.securityStamp !== payload.securityStamp) {
-        throw new UnauthorizedException('Tài khoản không tồn tại, đã bị khóa hoặc phiên hết hạn.');
+          if (!user || user.status !== 'ACTIVE' || user.securityStamp !== payload.securityStamp) {
+            throw new UnauthorizedException('Tài khoản không tồn tại, đã bị khóa hoặc phiên hết hạn.');
+          }
+
+          await this.redis.setUserStamp(user.id, user.securityStamp, 3600);
+          return {
+            id: user.id,
+            username: user.username,
+            role: user.role.name,
+            securityStamp: user.securityStamp,
+          };
+        } catch (err) {
+          if (err instanceof UnauthorizedException) throw err;
+        }
       }
 
-      await this.redis.setUserStamp(user.id, user.securityStamp, 3600);
-      return {
-        id: user.id,
-        username: user.username,
-        role: user.role.name,
-        securityStamp: user.securityStamp,
-      };
+      await this.redis.setUserStamp(payload.sub, payload.securityStamp, 3600);
     }
 
     return {

@@ -5,7 +5,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { PiiCryptoService } from '../../common/crypto/pii-crypto.service';
 
 @Module({
   imports: [
@@ -24,8 +23,8 @@ import { PiiCryptoService } from '../../common/crypto/pii-crypto.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, PiiCryptoService],
-  exports: [AuthService, JwtModule, PiiCryptoService],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}
 

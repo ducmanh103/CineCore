@@ -1,94 +1,15 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { TicketStatus } from '@prisma/client';
-
-const FALLBACK_SHOWTIMES = [
-  {
-    id: 1,
-    movieId: 1,
-    roomId: 1,
-    startTime: new Date(Date.now() + 2 * 3600 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 3.6 * 3600 * 1000).toISOString(),
-    price: 85000,
-    movie: {
-      id: 1,
-      title: 'Kung Fu Panda 4',
-      posterUrl: '/img/movies/kungfupanda4.jpg',
-      duration: 94,
-      ageRating: 'P',
-    },
-    room: {
-      id: 1,
-      name: 'Phòng 1 (Standard)',
-      screenType: '2D Digital',
-      theater: { id: 1, name: 'CineCore Nguyễn Huệ' },
-    },
-  },
-  {
-    id: 2,
-    movieId: 2,
-    roomId: 3,
-    startTime: new Date(Date.now() + 3 * 3600 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 5.8 * 3600 * 1000).toISOString(),
-    price: 110000,
-    movie: {
-      id: 2,
-      title: 'Dune: Phần 2',
-      posterUrl: '/img/movies/dune2.jpg',
-      duration: 166,
-      ageRating: 'T16',
-    },
-    room: {
-      id: 3,
-      name: 'Phòng 1 (IMAX)',
-      screenType: 'IMAX Laser 4K',
-      theater: { id: 2, name: 'CineCore Hà Đông' },
-    },
-  },
-  {
-    id: 3,
-    movieId: 3,
-    roomId: 2,
-    startTime: new Date(Date.now() + 4 * 3600 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 6.2 * 3600 * 1000).toISOString(),
-    price: 95000,
-    movie: {
-      id: 3,
-      title: 'Mai',
-      posterUrl: '/img/movies/mai.jpg',
-      duration: 131,
-      ageRating: 'T18',
-    },
-    room: {
-      id: 2,
-      name: 'Phòng 2 (VIP)',
-      screenType: 'Gold Class 3D',
-      theater: { id: 1, name: 'CineCore Nguyễn Huệ' },
-    },
-  },
-  {
-    id: 4,
-    movieId: 4,
-    roomId: 8,
-    startTime: new Date(Date.now() + 5 * 3600 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 7.3 * 3600 * 1000).toISOString(),
-    price: 105000,
-    movie: {
-      id: 4,
-      title: 'Quật Mộ Trùng Ma',
-      posterUrl: '/img/movies/quatmotrungma.jpg',
-      duration: 134,
-      ageRating: 'T18',
-    },
-    room: {
-      id: 8,
-      name: 'Phòng 1 (Grand)',
-      screenType: 'IMAX Laser',
-      theater: { id: 3, name: 'CineCore Đà Nẵng' },
-    },
-  },
-];
+import { CreateShowtimeDto } from './dto/showtime.dto';
+import { FALLBACK_SHOWTIMES } from '../../common/constants/fallback-catalogue.constant';
 
 @Injectable()
 export class ShowtimesService {
@@ -113,8 +34,8 @@ export class ShowtimesService {
         if (theaterId) where.room = { theaterId };
 
         if (date) {
-          const startOfDay = new Date(`${date}T00:00:00.000Z`);
-          const endOfDay = new Date(`${date}T23:59:59.999Z`);
+          const startOfDay = new Date(`${date}T00:00:00.000+07:00`);
+          const endOfDay = new Date(`${date}T23:59:59.999+07:00`);
           where.startTime = { gte: startOfDay, lte: endOfDay };
         } else {
           where.startTime = { gte: new Date() };
@@ -164,7 +85,10 @@ export class ShowtimesService {
           const activeTickets = await this.prisma.ticket.findMany({
             where: {
               showtimeId,
-              status: { in: [TicketStatus.BOOKED, TicketStatus.PENDING] },
+              OR: [
+                { status: TicketStatus.BOOKED },
+                { status: TicketStatus.PENDING, heldUntil: { gt: new Date() } },
+              ],
             },
           });
 
@@ -182,19 +106,16 @@ export class ShowtimesService {
                 if (ticket.status === TicketStatus.BOOKED) {
                   seatStatus = 'BOOKED';
                 } else if (ticket.status === TicketStatus.PENDING) {
-                  seatStatus = currentUserId && ticket.userId === currentUserId ? 'MY_PENDING' : 'PENDING';
+                  seatStatus =
+                    currentUserId && ticket.userId === currentUserId ? 'MY_PENDING' : 'PENDING';
                 }
               } else {
-                const lockKey = `seat:lock:${showtimeId}:${seat.id}`;
-                const client = this.redis.getClient();
-                if (client && client.status === 'ready') {
-                  const lockedBy = await client.get(lockKey);
-                  if (lockedBy) {
-                    seatStatus =
-                      currentUserId && lockedBy === currentUserId.toString()
-                        ? 'MY_PENDING'
-                        : 'PENDING';
-                  }
+                const lockedBy = await this.redis.getSeatLockOwner(showtimeId, seat.id);
+                if (lockedBy) {
+                  seatStatus =
+                    currentUserId && lockedBy === currentUserId.toString()
+                      ? 'MY_PENDING'
+                      : 'PENDING';
                 }
               }
 
@@ -217,6 +138,7 @@ export class ShowtimesService {
                 id: showtime.room.id,
                 name: showtime.room.name,
                 screenType: showtime.room.screenType,
+                theater: showtime.room.theater,
               },
             },
             seats: seatsWithStatus,
@@ -258,9 +180,103 @@ export class ShowtimesService {
           id: st.room.id,
           name: st.room.name,
           screenType: st.room.screenType,
+          theater: st.room.theater,
         },
       },
       seats: sampleSeats,
     };
+  }
+
+  /**
+   * Tạo suất chiếu mới có kiểm tra chống trùng giờ phòng chiếu
+   */
+  async createShowtime(dto: CreateShowtimeDto) {
+    const movieId = Number(dto.movieId);
+    const roomId = Number(dto.roomId);
+    const price = Number(dto.price) || 95000;
+    const start = new Date(dto.startTime);
+
+    if (isNaN(start.getTime())) {
+      throw new BadRequestException('Thời gian bắt đầu chiếu không hợp lệ.');
+    }
+
+    if (this.prisma.isConnected()) {
+      const [movie, room] = await Promise.all([
+        this.prisma.movie.findUnique({ where: { id: movieId } }),
+        this.prisma.room.findUnique({ where: { id: roomId }, include: { theater: true } }),
+      ]);
+
+      if (!movie) throw new NotFoundException('Không tìm thấy phim.');
+      if (!room) throw new NotFoundException('Không tìm thấy phòng chiếu.');
+
+      // Cộng thêm 15 phút dọn vệ sinh phòng giữa các ca chiếu
+      const end = new Date(start.getTime() + (movie.duration + 15) * 60 * 1000);
+
+      // Kiểm tra trùng khung giờ tại cùng phòng chiếu
+      const overlapping = await this.prisma.showtime.findFirst({
+        where: {
+          roomId,
+          startTime: { lt: end },
+          endTime: { gt: start },
+        },
+        include: { movie: true },
+      });
+
+      if (overlapping) {
+        throw new ConflictException(
+          `Phòng ${room.name} đã có lịch chiếu phim "${overlapping.movie.title}" từ ${overlapping.startTime.toLocaleTimeString('vi-VN')} đến ${overlapping.endTime.toLocaleTimeString('vi-VN')}.`,
+        );
+      }
+
+      return this.prisma.showtime.create({
+        data: {
+          movieId,
+          roomId,
+          startTime: start,
+          endTime: end,
+          price,
+        },
+        include: {
+          movie: { select: { id: true, title: true, posterUrl: true, duration: true, ageRating: true } },
+          room: { include: { theater: true } },
+        },
+      });
+    }
+
+    const end = new Date(start.getTime() + 120 * 60 * 1000);
+    const newShowtime: any = {
+      id: FALLBACK_SHOWTIMES.length + 1,
+      movieId,
+      roomId,
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+      price,
+      movie: FALLBACK_SHOWTIMES[0].movie,
+      room: FALLBACK_SHOWTIMES[0].room,
+    };
+    FALLBACK_SHOWTIMES.unshift(newShowtime);
+    return newShowtime;
+  }
+
+  async deleteShowtime(id: number) {
+    if (this.prisma.isConnected()) {
+      const existing = await this.prisma.showtime.findUnique({ where: { id } });
+      if (!existing) throw new NotFoundException('Không tìm thấy suất chiếu.');
+
+      const ticketCount = await this.prisma.ticket.count({
+        where: { showtimeId: id, status: TicketStatus.BOOKED },
+      });
+      if (ticketCount > 0) {
+        throw new BadRequestException('Không thể xóa suất chiếu đã có khách hàng đặt vé.');
+      }
+
+      await this.prisma.ticket.deleteMany({ where: { showtimeId: id } });
+      await this.prisma.showtime.delete({ where: { id } });
+      return { message: 'Đã xóa suất chiếu thành công.' };
+    }
+
+    const idx = FALLBACK_SHOWTIMES.findIndex((s) => s.id === id);
+    if (idx !== -1) FALLBACK_SHOWTIMES.splice(idx, 1);
+    return { message: 'Đã xóa suất chiếu thành công.' };
   }
 }

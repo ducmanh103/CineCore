@@ -38,6 +38,7 @@ prisma/generated/
 backend/prisma/generated/
 
 # Uploads & local storage (keep folder with .gitkeep)
+uploads/
 backend/uploads/*
 !backend/uploads/.gitkeep
 

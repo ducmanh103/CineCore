@@ -79,12 +79,28 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     userId: number,
     ttlSeconds = 900,
   ): Promise<{ success: boolean; lockedSeats: number[] }> {
+    const acquired: number[] = [];
+
     if (!this.isReady()) {
-      // Nếu Redis chưa bật, cho phép đi tiếp để PostgreSQL Transaction xử lý
-      return { success: true, lockedSeats: seatIds };
+      // In-memory atomic lock fallback khi Redis 7 chưa được bật
+      const now = Date.now();
+      for (const seatId of seatIds) {
+        const key = `seat:lock:${showtimeId}:${seatId}`;
+        const existing = this.memStore.get(key);
+        if (existing && existing.expiresAt > now) {
+          // Đã có người khóa ghế này -> rollback các ghế vừa lấy trong lượt này
+          await this.releaseSeatLocks(showtimeId, acquired);
+          return { success: false, lockedSeats: [] };
+        }
+        this.memStore.set(key, {
+          value: userId.toString(),
+          expiresAt: now + ttlSeconds * 1000,
+        });
+        acquired.push(seatId);
+      }
+      return { success: true, lockedSeats: acquired };
     }
 
-    const acquired: number[] = [];
     try {
       for (const seatId of seatIds) {
         const key = `seat:lock:${showtimeId}:${seatId}`;
@@ -103,21 +119,49 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async releaseSeatLocks(showtimeId: number, seatIds: number[]): Promise<void> {
-    if (!this.isReady() || !seatIds.length) return;
+    if (!seatIds.length) return;
+    for (const id of seatIds) {
+      this.memStore.delete(`seat:lock:${showtimeId}:${id}`);
+    }
+    if (!this.isReady()) return;
     try {
       const keys = seatIds.map((id) => `seat:lock:${showtimeId}:${id}`);
       await this.client!.del(...keys);
     } catch {}
   }
 
+  async getSeatLockOwner(showtimeId: number, seatId: number): Promise<string | null> {
+    const key = `seat:lock:${showtimeId}:${seatId}`;
+    if (!this.isReady()) {
+      const entry = this.memStore.get(key);
+      if (!entry || Date.now() > entry.expiresAt) {
+        this.memStore.delete(key);
+        return null;
+      }
+      return entry.value;
+    }
+    try {
+      return await this.client!.get(key);
+    } catch {
+      return null;
+    }
+  }
+
   // ==========================================
-  // BRUTE-FORCE PROTECTION
+  // BRUTE-FORCE PROTECTION (with In-Memory Fallback)
   // ==========================================
 
   async isAccountLocked(username: string): Promise<boolean> {
-    if (!this.isReady()) return false;
+    const lockKey = `auth:lock:${username.toLowerCase()}`;
+    if (!this.isReady()) {
+      const entry = this.memStore.get(lockKey);
+      if (!entry || Date.now() > entry.expiresAt) {
+        this.memStore.delete(lockKey);
+        return false;
+      }
+      return true;
+    }
     try {
-      const lockKey = `auth:lock:${username.toLowerCase()}`;
       const isLocked = await this.client!.exists(lockKey);
       return isLocked === 1;
     } catch {
@@ -130,12 +174,33 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     maxAttempts = 5,
     lockDuration = 900,
   ): Promise<{ attempts: number; isLocked: boolean }> {
-    if (!this.isReady()) return { attempts: 1, isLocked: false };
-    try {
-      const norm = username.toLowerCase();
-      const failKey = `auth:fail:${norm}`;
-      const lockKey = `auth:lock:${norm}`;
+    const norm = username.toLowerCase();
+    const failKey = `auth:fail:${norm}`;
+    const lockKey = `auth:lock:${norm}`;
 
+    if (!this.isReady()) {
+      const now = Date.now();
+      const existing = this.memStore.get(failKey);
+      const currentAttempts =
+        existing && existing.expiresAt > now ? Number(existing.value) + 1 : 1;
+
+      if (currentAttempts >= maxAttempts) {
+        this.memStore.set(lockKey, {
+          value: 'locked',
+          expiresAt: now + lockDuration * 1000,
+        });
+        this.memStore.delete(failKey);
+        return { attempts: currentAttempts, isLocked: true };
+      }
+
+      this.memStore.set(failKey, {
+        value: currentAttempts.toString(),
+        expiresAt: now + 1800 * 1000,
+      });
+      return { attempts: currentAttempts, isLocked: false };
+    }
+
+    try {
       const attempts = await this.client!.incr(failKey);
       if (attempts === 1) {
         await this.client!.expire(failKey, 1800);
@@ -154,9 +219,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async clearLoginFailures(username: string): Promise<void> {
+    const norm = username.toLowerCase();
+    this.memStore.delete(`auth:fail:${norm}`);
+    this.memStore.delete(`auth:lock:${norm}`);
     if (!this.isReady()) return;
     try {
-      const norm = username.toLowerCase();
       await this.client!.del(`auth:fail:${norm}`, `auth:lock:${norm}`);
     } catch {}
   }

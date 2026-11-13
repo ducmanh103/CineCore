@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Body, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
+import { CreateVnpayUrlDto } from './dto/payment.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import { Request } from 'express';
@@ -15,11 +16,11 @@ export class PaymentsController {
   @Post('create-vnpay-url')
   @ApiOperation({ summary: 'Tạo URL chuyển hướng thanh toán VNPay' })
   async createUrl(
-    @Body('bookingCode') bookingCode: string,
+    @Body() dto: CreateVnpayUrlDto,
     @Req() req: Request,
   ) {
     const ip = req.ip || '127.0.0.1';
-    return this.paymentsService.createVnpayUrl(bookingCode, ip);
+    return this.paymentsService.createVnpayUrl(dto.bookingCode, ip);
   }
 
   @Public()

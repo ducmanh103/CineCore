@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MinLength, IsEmail, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength, IsEmail, Matches, IsOptional } from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({ example: 'admin', description: 'Tên đăng nhập' })
@@ -29,6 +29,8 @@ export class RegisterDto {
   email: string;
 
   @ApiProperty({ example: '0987654321', description: 'Số điện thoại', required: false })
+  @IsOptional()
+  @IsString()
   phone?: string;
 
   @ApiProperty({ example: 'Password@123', description: 'Mật khẩu' })
@@ -48,4 +50,5 @@ export class VerifyMfaDto {
   @Matches(/^[0-9]{6}$/, { message: 'Mã OTP phải gồm 6 chữ số' })
   otp: string;
 }
+
 

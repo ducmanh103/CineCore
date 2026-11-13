@@ -7,7 +7,7 @@ import axios from 'axios';
 @Injectable()
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
-  private readonly uploadDir = path.join(process.cwd(), 'uploads');
+  private readonly uploadDir = path.resolve(__dirname, '..', '..', '..', 'uploads');
 
   constructor() {
     if (!fs.existsSync(this.uploadDir)) {
