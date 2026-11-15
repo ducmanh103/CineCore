@@ -28,7 +28,7 @@ export class RegisterDto {
   @IsEmail({}, { message: 'Email không hợp lệ' })
   email: string;
 
-  @ApiProperty({ example: '0987654321', description: 'Số điện thoại', required: false })
+  @ApiProperty({ example: '0987654331', description: 'Số điện thoại', required: false })
   @IsOptional()
   @IsString()
   phone?: string;
@@ -45,7 +45,7 @@ export class VerifyMfaDto {
   @IsNotEmpty()
   challengeId: string;
 
-  @ApiProperty({ example: '654321', description: 'Mã OTP 2FA 6 số' })
+  @ApiProperty({ example: '654331', description: 'Mã OTP 2FA 6 số' })
   @IsString()
   @Matches(/^[0-9]{6}$/, { message: 'Mã OTP phải gồm 6 chữ số' })
   otp: string;

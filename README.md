@@ -115,7 +115,7 @@ Nếu sử dụng Docker Compose:
 ```bash
 npm run docker:up
 ```
-*Lưu ý: Nếu máy tính đã cài đặt sẵn PostgreSQL (cổng 5432) và Redis (cổng 6379), hệ thống sẽ kết nối trực tiếp vào các cổng dịch vụ nội bộ này.*
+*Lưu ý: Nếu máy tính đã cài đặt sẵn PostgreSQL (cổng 5433) và Redis (cổng 6379), hệ thống sẽ kết nối trực tiếp vào các cổng dịch vụ nội bộ này.*
 
 ### 4.5. Bước 4: Khởi Tạo Cơ Sở Dữ Liệu (Migration & Seed)
 ```bash
@@ -159,7 +159,7 @@ Sau khi hoàn tất quá trình nạp dữ liệu mẫu (`seed`), hệ thống s
 | Biến | Giá Trị Mặc Định / Ví Dụ | Mục Đích |
 | :--- | :--- | :--- |
 | `PORT` | `3000` | Cổng dịch vụ của Backend API |
-| `DATABASE_URL` | `postgresql://postgres:postgres123@localhost:5432/cinemahub?schema=public` | Chuỗi kết nối đến cơ sở dữ liệu PostgreSQL |
+| `DATABASE_URL` | `postgresql://postgres:postgres123@localhost:5433/cinemahub?schema=public` | Chuỗi kết nối đến cơ sở dữ liệu PostgreSQL |
 | `REDIS_HOST` | `localhost` | Địa chỉ máy chủ Redis |
 | `REDIS_PORT` | `6379` | Cổng kết nối Redis |
 | `JWT_SECRET` | `cinecore_super_secret_jwt_access_token_key_...` | Khóa bí mật dùng để ký và xác thực Access Token |

@@ -14,7 +14,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     } catch {
       this.isDbConnected = false;
       this.logger.warn(
-        'PostgreSQL (localhost:5432) chưa khả dụng. Hệ thống chuyển sang chế độ dữ liệu dự phòng (Fault-tolerant Fallback).',
+        'PostgreSQL (localhost:5433) chưa khả dụng. Hệ thống chuyển sang chế độ dữ liệu dự phòng (Fault-tolerant Fallback).',
       );
     }
   }
