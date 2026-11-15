@@ -118,7 +118,7 @@ export const RegisterPage: React.FC = () => {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="0987654331"
+                placeholder="0987654321"
                 className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors"
               />
             </div>
