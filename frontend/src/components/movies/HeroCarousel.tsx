@@ -78,7 +78,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ movies }) => {
               className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-rose-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-luminous hover:opacity-95 hover:scale-[1.02] transition-all"
             >
               <Ticket className="w-4 h-4" />
-              <span>ĐẶT VÉ TRẢI NGHIỆM</span>
+              <span>ĐẶT VÉ </span>
             </Link>
 
             {currentMovie.trailerUrl && (

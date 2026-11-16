@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Sparkles, Ticket, ShieldAlert, LogOut, Clapperboard, Compass, Calendar, Building2 } from 'lucide-react';
+import { Ticket, ShieldAlert, LogOut, Clapperboard } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 export const Navbar: React.FC = () => {
@@ -14,10 +14,10 @@ export const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { label: 'Trang Chủ', path: '/', icon: Compass },
-    { label: 'Phim Chiếu', path: '/movies', icon: Clapperboard },
-    { label: 'Lịch Chiếu', path: '/showtimes', icon: Calendar },
-    { label: 'Cụm Rạp', path: '/theaters', icon: Building2 },
+    { label: 'Trang Chủ', path: '/' },
+    { label: 'Phim Chiếu', path: '/movies' },
+    { label: 'Lịch Chiếu', path: '/showtimes' },
+    { label: 'Cụm Rạp', path: '/theaters' },
   ];
 
   return (
@@ -35,9 +35,7 @@ export const Navbar: React.FC = () => {
               </span>
               <span className="w-2 h-2 rounded-full bg-rose-500 mb-2"></span>
             </div>
-            <span className="block text-[10px] tracking-widest uppercase text-slate-600 font-bold -mt-1">
-              Next-Gen Cinema
-            </span>
+
           </div>
         </Link>
 
@@ -45,18 +43,16 @@ export const Navbar: React.FC = () => {
         <nav className="hidden md:flex items-center gap-2 p-1.5 rounded-2xl bg-slate-100/80 border border-slate-200/60 text-sm font-medium">
           {navLinks.map((item) => {
             const isActive = location.pathname === item.path;
-            const Icon = item.icon;
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? 'bg-white text-indigo-600 font-bold shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${isActive
+                  ? 'bg-white text-indigo-600 font-bold shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-600'}`} />
                 <span>{item.label}</span>
               </Link>
             );
