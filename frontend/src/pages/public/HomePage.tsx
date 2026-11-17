@@ -60,13 +60,12 @@ export const HomePage: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
           <div>
-            <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">1. Chọn Phim</label>
             <select
               value={selectedMovieId}
               onChange={(e) => setSelectedMovieId(e.target.value)}
               className="w-full px-3.5 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-600 transition-colors"
             >
-              <option value="">-- Tất cả phim đang chiếu --</option>
+              <option value=""> Tất cả phim đang chiếu </option>
               {data.nowShowing.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.title} ({m.ageRating})
@@ -76,13 +75,12 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">2. Chọn Cụm Rạp</label>
             <select
               value={selectedTheaterId}
               onChange={(e) => setSelectedTheaterId(e.target.value)}
               className="w-full px-3.5 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-600 transition-colors"
             >
-              <option value="">-- Tất cả các cụm rạp --</option>
+              <option value="">Tất cả các cụm rạp </option>
               {data.theaters.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name} ({t.city})
@@ -109,11 +107,10 @@ export const HomePage: React.FC = () => {
           <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-100 border border-slate-200/80 w-fit">
             <button
               onClick={() => setActiveTab('NOW_SHOWING')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-300 ${
-                activeTab === 'NOW_SHOWING'
-                  ? 'bg-white text-indigo-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-300 ${activeTab === 'NOW_SHOWING'
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
             >
               <Flame className="w-4 h-4 text-rose-500" />
               <span>Phim Đang Chiếu Hot</span>
@@ -121,11 +118,10 @@ export const HomePage: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('COMING_SOON')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-300 ${
-                activeTab === 'COMING_SOON'
-                  ? 'bg-white text-indigo-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-300 ${activeTab === 'COMING_SOON'
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
             >
               <Calendar className="w-4 h-4 text-indigo-600" />
               <span>Phim Sắp Khởi Chiếu</span>
@@ -148,62 +144,6 @@ export const HomePage: React.FC = () => {
           ))}
         </div>
       </section>
-
-      {/* 4. Why Choose CineCore Features */}
-      <section className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-indigo-50/80 via-white to-rose-50/50 border border-indigo-100 shadow-card">
-        <div className="text-center max-w-2xl mx-auto space-y-2 mb-10">
-          <span className="text-xs font-black uppercase tracking-widest text-indigo-600">
-            Trải Nghiệm Điện Ảnh Thế Hệ Mới
-          </span>
-          <h2 className="font-display text-2xl sm:text-3xl font-black text-slate-900">
-            Tại Sao Hơn 100.000 Khách Hàng Chọn CineCore?
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-              <Zap className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-base text-slate-900">Zero Overbooking</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Khóa ghế phân tán nguyên tử bằng Redis 7. Chống hoàn toàn tình trạng đặt trùng ghế chỉ trong 1 mili-giây.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-              <MonitorPlay className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-base text-slate-900">IMAX Laser & Dolby</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Màn hình cong IMAX góc nhìn cực đại cùng âm thanh vòm Dolby Atmos tái hiện chân thực từng khung hình điện ảnh.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-base text-slate-900">Bảo Mật Dữ Liệu PDPD</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Mã hóa dữ liệu cá nhân AES-256-GCM tuân thủ chặt chẽ Nghị định 13/2023/NĐ-CP và bảo vệ danh tính tối đa.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-base text-slate-900">CineCore AI Concierge</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Trợ lý ảo AI thông minh hiểu tiếng Việt, gợi ý suất chiếu và quản lý vé đặt tức thời 24/7.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Cụm Rạp Chiếu CineCore */}
       <section className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -221,9 +161,8 @@ export const HomePage: React.FC = () => {
           {data.theaters.map((theater, idx) => (
             <div
               key={theater.id}
-              className={`p-6 rounded-3xl bg-white border border-slate-200/80 shadow-card hover:shadow-card-hover hover:border-indigo-200 transition-all ${
-                idx === 0 ? 'md:col-span-2' : ''
-              }`}
+              className={`p-6 rounded-3xl bg-white border border-slate-200/80 shadow-card hover:shadow-card-hover hover:border-indigo-200 transition-all ${idx === 0 ? 'md:col-span-2' : ''
+                }`}
             >
               <div className="flex items-center gap-2 text-indigo-600 text-xs font-bold">
                 <MapPin className="w-4 h-4" />

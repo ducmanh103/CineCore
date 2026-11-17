@@ -29,14 +29,7 @@ export const ShowtimesPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      <div>
-        <div className="flex items-center gap-2 text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1">
-          <Calendar className="w-4 h-4" />
-          <span>Hệ Thống Lịch Chiếu Toàn Quốc</span>
-        </div>
-        <h1 className="font-display text-3xl font-black text-slate-900">Lịch Chiếu Phim CineCore</h1>
-        <p className="text-xs text-slate-500 mt-1">Chọn ngày chiếu để xem các suất chiếu tại tất cả các cụm rạp</p>
-      </div>
+
 
       {/* Date Capsule Scroller */}
       <div className="flex items-center gap-3 overflow-x-auto pb-2 p-1.5 rounded-3xl bg-slate-100/80 border border-slate-200/80">
@@ -51,11 +44,10 @@ export const ShowtimesPage: React.FC = () => {
             <button
               key={dateStr}
               onClick={() => setSelectedDate(dateStr)}
-              className={`flex flex-col items-center min-w-[80px] py-3 px-4 rounded-2xl border transition-all duration-300 ${
-                isSelected
+              className={`flex flex-col items-center min-w-[80px] py-3 px-4 rounded-2xl border transition-all duration-300 ${isSelected
                   ? 'bg-gradient-to-r from-indigo-600 to-rose-500 text-white border-transparent shadow-luminous font-bold'
                   : 'bg-white border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-300'
-              }`}
+                }`}
             >
               <span className="text-[10px] uppercase tracking-wider font-extrabold">{dayName}</span>
               <span className="text-xl font-display font-black mt-0.5">{dayNum}</span>

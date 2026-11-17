@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, X, Send, Bot, Sparkles, Clapperboard, ArrowRight } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, Clapperboard, ArrowRight } from 'lucide-react';
 import { api } from '../../api/axios';
 import { Link } from 'react-router-dom';
 
@@ -60,8 +60,8 @@ export const AiConciergeWidget: React.FC = () => {
           onClick={() => setIsOpen(true)}
           className="group flex items-center gap-2.5 px-4 py-3.5 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-rose-500 text-white shadow-luminous hover:scale-105 transition-all duration-300"
         >
-          <Sparkles className="w-5 h-5 text-amber-300 animate-spin-slow" />
-          <span className="font-extrabold text-xs tracking-wider uppercase">CineCore AI Concierge</span>
+          <Bot className="w-5 h-5 text-amber-300 animate-spin-slow" />
+          <span className="font-extrabold text-xs tracking-wider uppercase">CineCore AI </span>
         </button>
       )}
 
@@ -98,16 +98,14 @@ export const AiConciergeWidget: React.FC = () => {
             {messages.map((m, idx) => (
               <div
                 key={idx}
-                className={`flex flex-col ${
-                  m.sender === 'user' ? 'items-end' : 'items-start'
-                }`}
+                className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'
+                  }`}
               >
                 <div
-                  className={`p-3.5 rounded-2xl max-w-[85%] leading-relaxed ${
-                    m.sender === 'user'
-                      ? 'bg-gradient-to-r from-indigo-600 to-rose-500 text-white rounded-br-none shadow-sm font-medium'
-                      : 'bg-white text-slate-800 rounded-bl-none border border-slate-200/80 shadow-sm'
-                  }`}
+                  className={`p-3.5 rounded-2xl max-w-[85%] leading-relaxed ${m.sender === 'user'
+                    ? 'bg-gradient-to-r from-indigo-600 to-rose-500 text-white rounded-br-none shadow-sm font-medium'
+                    : 'bg-white text-slate-800 rounded-bl-none border border-slate-200/80 shadow-sm'
+                    }`}
                 >
                   {m.text}
                 </div>
