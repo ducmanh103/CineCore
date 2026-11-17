@@ -1,77 +1,55 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../../api/axios';
 import { MovieCard } from '../../components/movies/MovieCard';
 import { Movie } from '../../types';
-import { Search, Filter, Clapperboard } from 'lucide-react';
+import { Film, ArrowLeft } from 'lucide-react';
 
 export const MoviesPage: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const search = searchParams.get('search') || '';
 
   useEffect(() => {
     setLoading(true);
     const query = new URLSearchParams();
     if (search) query.append('search', search);
-    if (status) query.append('status', status);
 
     api
       .get<any, Movie[]>(`/movies?${query.toString()}`)
-      .then((res) => setMovies(res))
+      .then((res) => setMovies(res || []))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, [search, status]);
+  }, [search]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      {/* Title & Filters */}
-      <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1">
-            <Clapperboard className="w-4 h-4" />
-            <span>Kho Phim Chiếu Rạp CineCore</span>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      {search && (
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+          <div>
+            <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <Film className="w-5 h-5 text-indigo-600" />
+              <span>Kết quả tìm kiếm cho: "{search}"</span>
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">Tìm thấy {movies.length} kết quả</p>
           </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900">
-            Khám Phá Phim Chiếu Rạp
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Cập nhật liên tục các siêu phẩm điện ảnh Việt Nam và quốc tế mới nhất
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search Input */}
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm kiếm phim, đạo diễn..."
-              className="pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:border-indigo-600 focus:bg-white w-52 sm:w-64 transition-colors"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:border-indigo-600 transition-colors"
+          <Link
+            to="/movies"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
           >
-            <option value="">Tất cả trạng thái</option>
-            <option value="NOW_SHOWING">Đang chiếu</option>
-            <option value="COMING_SOON">Sắp chiếu</option>
-          </select>
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Xem tất cả phim</span>
+          </Link>
         </div>
-      </div>
+      )}
 
-      {/* Grid */}
+      {/* Grid danh sách phim */}
       {loading ? (
         <div className="py-20 text-center text-slate-500 text-sm">Đang tải danh sách phim CineCore...</div>
       ) : movies.length === 0 ? (
         <div className="p-12 rounded-3xl bg-white border border-slate-200 text-center text-slate-500 text-sm">
-          Không tìm thấy phim phù hợp với từ khóa tìm kiếm.
+          {search ? `Không tìm thấy phim phù hợp với từ khóa "${search}".` : 'Hiện chưa có phim nào trong danh sách.'}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-6">

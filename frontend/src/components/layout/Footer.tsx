@@ -48,7 +48,7 @@ export const Footer: React.FC = () => {
           <ul className="space-y-2.5 text-xs text-slate-500">
 
             <li> Hotline: 1900 8888 (8:00 - 23:00)</li>
-            <li>Email:ditmedienluc@epu.edu.vn</li>
+            <li>Email:emyeudienluc@epu.edu.vn</li>
             <li>Địa chỉ :235 Hoàng Quốc việt</li>
           </ul>
         </div>
