@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../../api/axios';
-import { CheckCircle2, XCircle, ArrowRight, Ticket, Clapperboard } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  Ticket,
+  Loader2,
+  Home,
+} from 'lucide-react';
 
 export const VnpayReturnPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -39,7 +45,7 @@ export const VnpayReturnPage: React.FC = () => {
         setStatus({
           loading: false,
           isSuccess: false,
-          message: err.message || 'Lỗi khi xác minh giao dịch.',
+          message: err.message || 'Giao dịch thanh toán chưa hoàn tất hoặc đã bị hủy.',
           bookingCode: queryObj['vnp_TxnRef'] || '',
         });
       });
@@ -47,53 +53,58 @@ export const VnpayReturnPage: React.FC = () => {
 
   if (status.loading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center text-slate-500 text-sm">
-        Đang đối soát giao dịch thanh toán CineCore cùng VNPay...
+      <div className="min-h-[72vh] flex flex-col items-center justify-center gap-3 text-white/80 text-sm font-medium">
+        <Loader2 className="w-8 h-8 text-[#FF414D] animate-spin" aria-hidden="true" />
+        <span>Đang kiểm tra kết quả thanh toán, vui lòng đợi trong giây lát...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[75vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-white border border-slate-200/90 shadow-2xl text-center space-y-6">
+    <div className="min-h-[76vh] flex items-center justify-center px-4 py-10">
+      <div className="animate-scale-in w-full max-w-md p-8 sm:p-10 rounded-[28px] action-panel text-center space-y-6">
         <div className="flex justify-center">
           {status.isSuccess ? (
-            <div className="w-20 h-20 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border-2 border-emerald-200 shadow-sm animate-in zoom-in-50 duration-300">
-              <CheckCircle2 className="w-12 h-12 stroke-[2.5]" />
+            <div className="w-20 h-20 rounded-3xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center border border-emerald-400/35">
+              <CheckCircle2 className="w-11 h-11 stroke-[2.2]" aria-hidden="true" />
             </div>
           ) : (
-            <div className="w-20 h-20 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center border-2 border-rose-200 shadow-sm animate-in zoom-in-50 duration-300">
-              <XCircle className="w-12 h-12 stroke-[2.5]" />
+            <div className="w-20 h-20 rounded-3xl bg-red-500/15 text-red-300 flex items-center justify-center border border-red-400/35">
+              <XCircle className="w-11 h-11 stroke-[2.2]" aria-hidden="true" />
             </div>
           )}
         </div>
 
-        <div>
-          <h2 className="font-display text-2xl sm:text-3xl font-black text-slate-900">
-            {status.isSuccess ? 'Thanh Toán Thành Công!' : 'Giao Dịch Thất Bại'}
-          </h2>
-          <p className="text-xs text-slate-500 mt-2 font-medium">{status.message}</p>
+        <div className="space-y-2">
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-white">
+            {status.isSuccess ? 'Đặt vé thành công!' : 'Thanh toán chưa hoàn tất'}
+          </h1>
+          <p className="text-xs sm:text-sm text-[#8B9BB4] leading-relaxed">
+            {status.message}
+          </p>
+
           {status.bookingCode && (
-            <div className="mt-4 p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-700">
-              Mã giao dịch CineCore: <b>#{status.bookingCode}</b>
+            <div className="mt-4 p-3.5 rounded-2xl bg-[#10141B] border border-white/10 text-xs sm:text-sm font-mono text-white/80">
+              Mã đặt vé: <strong className="text-white">#{status.bookingCode}</strong>
             </div>
           )}
         </div>
 
-        <div className="pt-2 flex flex-col gap-3">
+        <div className="pt-2 flex flex-col gap-2.5">
           <Link
             to="/booking/my-tickets"
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-rose-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-luminous flex items-center justify-center gap-2"
+            className="btn-ncc-primary w-full h-11 rounded-full font-semibold text-sm flex items-center justify-center gap-2"
           >
-            <Ticket className="w-4 h-4" />
-            <span>Mở Ví Vé CineCore Pass</span>
+            <Ticket className="w-4 h-4" aria-hidden="true" />
+            <span>Xem vé của tôi</span>
           </Link>
 
           <Link
             to="/"
-            className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+            className="btn-ncc-outline w-full h-11 rounded-full font-medium text-sm flex items-center justify-center gap-1.5"
           >
-            Quay Lại Trang Chủ
+            <Home className="w-4 h-4" aria-hidden="true" />
+            <span>Về trang chủ</span>
           </Link>
         </div>
       </div>

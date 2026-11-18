@@ -16,7 +16,7 @@ CineCore là nền tảng đặt vé xem phim trực tuyến và quản trị h�
 
 ### Frontend
 - **Nền tảng:** React 19, Vite, TypeScript
-- **Giao diện & Styling:** Tailwind CSS, PostCSS (Thiết kế phong cách sáng, tập trung vào công thái học và độ tương phản)
+- **Giao diện & Styling:** Tailwind CSS, PostCSS (Kiến trúc UI/UX Hybrid: Cinematic Showcase OLED Obsidian + Action-First Web App)
 - **Quản lý trạng thái:** Zustand, TanStack Query (React Query)
 - **Điều hướng:** React Router v7
 - **Bộ biểu tượng:** Lucide React

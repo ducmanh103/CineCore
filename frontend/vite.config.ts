@@ -10,6 +10,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-charts': ['chart.js', 'react-chartjs-2'],
+          'vendor-icons': ['lucide-react'],
+          'vendor-state': ['@tanstack/react-query', 'axios', 'zustand'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {
@@ -28,4 +40,3 @@ export default defineConfig({
     },
   },
 });
-

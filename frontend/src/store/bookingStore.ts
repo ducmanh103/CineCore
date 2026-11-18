@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Seat, Showtime } from '../types';
+import { toast } from './uiStore';
 
 interface BookingState {
   showtime: Showtime | null;
@@ -9,6 +10,12 @@ interface BookingState {
   toggleSeat: (seat: Seat) => void;
   clearSelection: () => void;
 }
+
+export const getSeatSurcharge = (seatType: Seat['seatType']): number => {
+  if (seatType === 'VIP') return 15000;
+  if (seatType === 'COUPLE') return 30000;
+  return 0;
+};
 
 export const useBookingStore = create<BookingState>((set) => ({
   showtime: null,
@@ -24,9 +31,11 @@ export const useBookingStore = create<BookingState>((set) => ({
       if (isSelected) {
         updated = state.selectedSeats.filter((s) => s.id !== seat.id);
       } else {
-        // Tối đa 8 ghế một lượt đặt
         if (state.selectedSeats.length >= 8) {
-          alert('Bạn chỉ có thể chọn tối đa 8 ghế trong một giao dịch.');
+          toast.warning(
+            'Giới hạn tối đa 8 ghế',
+            'Mỗi giao dịch đặt vé chỉ hỗ trợ chọn tối đa 8 ghế cùng lúc.',
+          );
           return state;
         }
         updated = [...state.selectedSeats, seat];
@@ -34,7 +43,7 @@ export const useBookingStore = create<BookingState>((set) => ({
 
       const base = state.showtime ? Number(state.showtime.price) : 0;
       const total = updated.reduce(
-        (sum, s) => sum + base + (s.seatType === 'VIP' ? 15000 : 0),
+        (sum, s) => sum + base + getSeatSurcharge(s.seatType),
         0,
       );
 
@@ -43,4 +52,3 @@ export const useBookingStore = create<BookingState>((set) => ({
 
   clearSelection: () => set({ selectedSeats: [], totalPrice: 0 }),
 }));
-
