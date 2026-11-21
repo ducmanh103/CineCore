@@ -9,8 +9,7 @@ import { HomePage } from '../pages/public/HomePage';
 import { MoviesPage } from '../pages/public/MoviesPage';
 import { MovieDetailPage } from '../pages/public/MovieDetailPage';
 import { ShowtimesPage } from '../pages/public/ShowtimesPage';
-import { TheatersPage } from '../pages/public/TheatersPage';
-import { TicketPricePage } from '../pages/public/TicketPricePage';
+
 import { PromotionsPage } from '../pages/public/PromotionsPage';
 
 import { LoginPage } from '../pages/auth/LoginPage';
@@ -69,8 +68,6 @@ export const AppRoutes: React.FC = () => {
           <Route path="/movies/:id" element={<MovieDetailPage />} />
           <Route path="/showtimes" element={<ShowtimesPage />} />
           <Route path="/promotions" element={<PromotionsPage />} />
-          <Route path="/ticket-price" element={<TicketPricePage />} />
-          <Route path="/theaters" element={<TheatersPage />} />
 
           {/* Auth & 2FA */}
           <Route path="/auth/login" element={<LoginPage />} />

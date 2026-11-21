@@ -3,42 +3,14 @@ import { Link } from 'react-router-dom';
 import { Smartphone, CheckCircle2, Globe, Youtube, MessageCircle } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const footerLinks = [
-    { label: 'Chính sách', path: '/ticket-price' },
-    { label: 'Lịch chiếu', path: '/showtimes' },
-    { label: 'Tin tức & Khuyến mãi', path: '/promotions' },
-    { label: 'Giá vé', path: '/ticket-price' },
-    { label: 'Hệ thống rạp', path: '/theaters' },
-    { label: 'Vé của tôi', path: '/booking/my-tickets' },
-    { label: 'Thành viên', path: '/auth/login' },
-  ];
+
 
   return (
     <footer className="relative mt-16 overflow-hidden bg-[#05070B] text-white border-t border-white/[0.06]">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(5,7,11,0)_22%,rgba(5,7,11,0.96)_100%)]"
-      />
+
 
       <div className="relative z-20 mx-auto max-w-[1440px] px-4 py-10 sm:px-8 sm:py-12">
-        {/* 1. Centered Horizontal Menu Row */}
-        <ul className="flex items-center justify-center flex-wrap gap-x-6 gap-y-3 sm:gap-x-10 mb-8 text-sm md:text-[15px]">
-          {footerLinks.map((item, idx) => (
-            <li key={`${item.path}-${idx}`}>
-              <Link
-                to={item.path}
-                className="group relative inline-flex items-center py-1 text-white/75 transition-all duration-300 hover:-translate-y-0.5 hover:text-white"
-              >
-                <span className="relative">
-                  {item.label}
-                  <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-white transition-transform duration-300 group-hover:scale-x-100" />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
 
-        {/* 2. Social Channels + Store Badges */}
         <div className="mb-8 flex flex-wrap items-center justify-center gap-4 sm:gap-8">
           <div className="flex items-center gap-3.5">
             <a

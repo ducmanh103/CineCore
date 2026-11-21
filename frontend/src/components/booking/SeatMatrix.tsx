@@ -83,7 +83,7 @@ export const SeatMatrix: React.FC<SeatMatrixProps> = ({ seats }) => {
           onClick={handlePickSweetSpotPair}
           className="btn-ncc-outline h-8 px-3.5 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
         >
-          <Armchair className="w-3.5 h-3.5 text-amber-300" aria-hidden="true" />
+
           <span>Gợi ý 2 ghế trung tâm</span>
         </button>
 
@@ -163,16 +163,16 @@ export const SeatMatrix: React.FC<SeatMatrixProps> = ({ seats }) => {
                     const statusDesc = isBooked
                       ? 'Đã đặt'
                       : isPending
-                      ? 'Đang giữ chỗ'
-                      : isSelected
-                      ? 'Bạn đang chọn'
-                      : 'Còn trống';
+                        ? 'Đang giữ chỗ'
+                        : isSelected
+                          ? 'Bạn đang chọn'
+                          : 'Còn trống';
 
                     const tierDesc = isCouple
                       ? 'Ghế đôi (+30.000đ)'
                       : isVip
-                      ? 'Ghế VIP (+15.000đ)'
-                      : 'Ghế thường';
+                        ? 'Ghế VIP (+15.000đ)'
+                        : 'Ghế thường';
 
                     return (
                       <React.Fragment key={seat.id}>

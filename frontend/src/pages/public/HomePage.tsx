@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api/axios';
 import { HeroCarousel } from '../../components/movies/HeroCarousel';
 import { MovieCard } from '../../components/movies/MovieCard';
-import { QrCodeSvg } from '../../components/ui/QrCodeSvg';
 import { DEFAULT_LANDING_DATA } from '../../constants/defaultLandingData';
 import { Showtime } from '../../types';
 import {
@@ -16,11 +15,8 @@ import {
   MapPin,
   ArrowRight,
   Phone,
-  Smartphone,
-  CheckCircle2,
   Armchair,
   Popcorn,
-  CreditCard,
   Gift,
 } from 'lucide-react';
 
@@ -227,25 +223,22 @@ export const HomePage: React.FC = () => {
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white">
-              <Ticket className="w-4 h-4 text-[#FF385C]" aria-hidden="true" />
+
               <span>Đặt Vé Nhanh Trực Tuyến</span>
             </div>
-            <span className="hidden sm:inline text-xs text-white/60 font-medium">
-              Chọn lần lượt Phim, Cụm rạp, Ngày và Suất chiếu
-            </span>
+
           </div>
 
           <form
             onSubmit={handleQuickBook}
             className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3.5 items-end"
           >
-            {/* Step 1: Chọn Phim */}
+
             <div>
               <label
                 htmlFor="quick-movie"
                 className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-[#8B9BB4] mb-1"
               >
-                <Film className="w-3.5 h-3.5 text-[#FF575F] shrink-0" aria-hidden="true" />
                 <span>1. Chọn Phim</span>
               </label>
               <select
@@ -254,7 +247,7 @@ export const HomePage: React.FC = () => {
                 onChange={(e) => setSelectedMovieId(e.target.value)}
                 className="w-full h-10 sm:h-[42px] px-2.5 sm:px-3.5 rounded-xl cinema-input text-xs sm:text-sm font-semibold text-white cursor-pointer"
               >
-                <option value="">Chọn bộ phim...</option>
+                <option value="">Chọn bộ phim</option>
                 {data.nowShowing.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.title} ({m.ageRating})
@@ -263,13 +256,11 @@ export const HomePage: React.FC = () => {
               </select>
             </div>
 
-            {/* Step 2: Chọn Rạp */}
             <div>
               <label
                 htmlFor="quick-theater"
                 className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-[#8B9BB4] mb-1"
               >
-                <Building2 className="w-3.5 h-3.5 text-[#FF575F] shrink-0" aria-hidden="true" />
                 <span>2. Chọn Rạp</span>
               </label>
               <select
@@ -278,7 +269,7 @@ export const HomePage: React.FC = () => {
                 onChange={(e) => setSelectedTheaterId(e.target.value)}
                 className="w-full h-10 sm:h-[42px] px-2.5 sm:px-3.5 rounded-xl cinema-input text-xs sm:text-sm font-semibold text-white cursor-pointer"
               >
-                <option value="">Chọn rạp chiếu...</option>
+                <option value="">Chọn rạp chiếu</option>
                 {data.theaters.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name} ({t.city})
@@ -293,7 +284,6 @@ export const HomePage: React.FC = () => {
                 htmlFor="quick-date"
                 className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-[#8B9BB4] mb-1"
               >
-                <Calendar className="w-3.5 h-3.5 text-[#FF575F] shrink-0" aria-hidden="true" />
                 <span>3. Chọn Ngày</span>
               </label>
               <select
@@ -309,8 +299,8 @@ export const HomePage: React.FC = () => {
                       {idx === 0
                         ? `Hôm nay (${formatted})`
                         : idx === 1
-                        ? `Ngày mai (${formatted})`
-                        : formatted}
+                          ? `Ngày mai (${formatted})`
+                          : formatted}
                     </option>
                   );
                 })}
@@ -323,7 +313,6 @@ export const HomePage: React.FC = () => {
                 htmlFor="quick-slot"
                 className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-[#8B9BB4] mb-1"
               >
-                <Clock className="w-3.5 h-3.5 text-[#FF575F] shrink-0" aria-hidden="true" />
                 <span>4. Chọn Suất</span>
               </label>
               <select
@@ -378,10 +367,7 @@ export const HomePage: React.FC = () => {
                     {catalogMode === 'NOW_SHOWING' ? 'Phim đang chiếu' : 'Phim sắp chiếu'}
                   </h2>
                 </div>
-                <div
-                  aria-hidden="true"
-                  className="mt-1.5 sm:mt-2 ml-5 sm:ml-6 h-[3px] w-16 sm:w-20 rounded-full bg-ncc-underline"
-                />
+
               </div>
 
               <Link
@@ -398,22 +384,20 @@ export const HomePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCatalogMode('NOW_SHOWING')}
-                  className={`px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
-                    catalogMode === 'NOW_SHOWING'
-                      ? 'btn-ncc-primary'
-                      : 'text-white/70 hover:text-white'
-                  }`}
+                  className={`px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${catalogMode === 'NOW_SHOWING'
+                    ? 'btn-ncc-primary'
+                    : 'text-white/70 hover:text-white'
+                    }`}
                 >
                   Phim đang chiếu
                 </button>
                 <button
                   type="button"
                   onClick={() => setCatalogMode('COMING_SOON')}
-                  className={`px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
-                    catalogMode === 'COMING_SOON'
-                      ? 'btn-ncc-primary'
-                      : 'text-white/70 hover:text-white'
-                  }`}
+                  className={`px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${catalogMode === 'COMING_SOON'
+                    ? 'btn-ncc-primary'
+                    : 'text-white/70 hover:text-white'
+                    }`}
                 >
                   Phim sắp chiếu
                 </button>
@@ -435,11 +419,10 @@ export const HomePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedGenre('ALL')}
-                className={`shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                  selectedGenre === 'ALL'
-                    ? 'btn-ncc-primary'
-                    : 'btn-ncc-outline text-white/80'
-                }`}
+                className={`shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${selectedGenre === 'ALL'
+                  ? 'btn-ncc-primary'
+                  : 'btn-ncc-outline text-white/80'
+                  }`}
               >
                 Tất cả thể loại
               </button>
@@ -448,11 +431,10 @@ export const HomePage: React.FC = () => {
                   key={slug}
                   type="button"
                   onClick={() => setSelectedGenre(slug)}
-                  className={`shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                    selectedGenre === slug
-                      ? 'btn-ncc-primary'
-                      : 'btn-ncc-outline text-white/80'
-                  }`}
+                  className={`shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${selectedGenre === slug
+                    ? 'btn-ncc-primary'
+                    : 'btn-ncc-outline text-white/80'
+                    }`}
                 >
                   {name}
                 </button>
@@ -472,8 +454,8 @@ export const HomePage: React.FC = () => {
                     ? idx === 0
                       ? 'SNEAKSHOW'
                       : idx < 3
-                      ? 'HOT'
-                      : null
+                        ? 'HOT'
+                        : null
                     : 'SNEAKSHOW'
                 }
               />
@@ -496,10 +478,7 @@ export const HomePage: React.FC = () => {
                   Phim sắp khởi chiếu
                 </h2>
               </div>
-              <div
-                aria-hidden="true"
-                className="mt-1.5 sm:mt-2 ml-5 sm:ml-6 h-[3px] w-16 sm:w-20 rounded-full bg-ncc-underline"
-              />
+
             </div>
 
             <Link
@@ -540,10 +519,7 @@ export const HomePage: React.FC = () => {
                 Khuyến mãi & Ưu đãi
               </h2>
             </div>
-            <div
-              aria-hidden="true"
-              className="mt-1.5 sm:mt-2 ml-5 sm:ml-6 h-[3px] w-16 sm:w-20 rounded-full bg-ncc-underline"
-            />
+
           </div>
 
           <div className="flex items-center gap-4">
@@ -629,10 +605,6 @@ export const HomePage: React.FC = () => {
                 Combo Bắp Nước Nổi Bật
               </h2>
             </div>
-            <div
-              aria-hidden="true"
-              className="mt-1.5 sm:mt-2 ml-5 sm:ml-6 h-[3px] w-16 sm:w-20 rounded-full bg-ncc-underline"
-            />
           </div>
 
           <p className="text-xs sm:text-sm text-[#8B9BB4]">
@@ -774,11 +746,10 @@ export const HomePage: React.FC = () => {
                     key={t.id}
                     type="button"
                     onClick={() => setActiveTheaterIdx(idx)}
-                    className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
-                      activeTheaterIdx === idx
-                        ? 'btn-ncc-primary'
-                        : 'bg-white/[0.06] text-white/75 hover:text-white border border-white/10'
-                    }`}
+                    className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${activeTheaterIdx === idx
+                      ? 'btn-ncc-primary'
+                      : 'bg-white/[0.06] text-white/75 hover:text-white border border-white/10'
+                      }`}
                   >
                     {t.city}
                   </button>
@@ -837,134 +808,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 7. Mobile App Download & Realistic E-Ticket QR Pass Mockup */}
-      <section
-        aria-label="Ứng dụng di động và Vé điện tử CineCore"
-        className="mx-auto max-w-[1440px] px-4 md:px-6 py-14 sm:py-20"
-      >
-        <div className="reveal-on-scroll holo-card rounded-3xl sm:rounded-[32px] p-5 sm:p-10 lg:p-12 relative overflow-hidden">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full aurora-orb-crimson"
-          />
 
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            <div className="lg:col-span-7 space-y-4 sm:space-y-5">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF385C]/15 border border-[#FF385C]/40 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#FF7A63]">
-                <Smartphone className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Ứng Dụng Đặt Vé Điện Ảnh CineCore</span>
-              </span>
-
-              <h2 className="font-display text-xl sm:text-3xl lg:text-4xl font-black uppercase leading-snug text-white">
-                Quét Mã QR Vào Thẳng Phòng Chiếu Không Cần Xếp Hàng
-              </h2>
-
-              <p className="text-xs sm:text-sm text-white/80 leading-relaxed max-w-xl">
-                Đặt vé trực tuyến trên website hoặc ứng dụng CineCore để chọn trước vị trí ghế trung tâm đẹp nhất và lưu vé điện tử ngay trên điện thoại.
-              </p>
-
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-xs sm:text-sm text-white/85 pt-1">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2
-                    className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"
-                    aria-hidden="true"
-                  />
-                  <span>Giữ ghế tự động 15 phút trong suốt quá trình thanh toán.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2
-                    className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"
-                    aria-hidden="true"
-                  />
-                  <span>Thanh toán nhanh qua ứng dụng ngân hàng & ví VNPay.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2
-                    className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"
-                    aria-hidden="true"
-                  />
-                  <span>Tích lũy 10% điểm thưởng đổi bắp nước & vé xem phim.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2
-                    className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"
-                    aria-hidden="true"
-                  />
-                  <span>Kích hoạt thẻ U22 hưởng ưu đãi đồng giá 55.000đ/vé 2D.</span>
-                </li>
-              </ul>
-
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2">
-                <Link
-                  to="/showtimes"
-                  className="btn-ncc-primary w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-7 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2"
-                >
-                  <Smartphone className="w-4 h-4" aria-hidden="true" />
-                  <span>Tải trên App Store & Google Play</span>
-                </Link>
-
-                <Link
-                  to="/auth/register"
-                  className="btn-ncc-outline w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2"
-                >
-                  <CreditCard className="w-4 h-4 text-amber-300" aria-hidden="true" />
-                  <span>Đăng ký Thẻ Thành Viên</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Right 5 Cols: Clean Phone Mockup with QR Ticket */}
-            <div className="lg:col-span-5 flex justify-center">
-              <div className="w-full max-w-[310px] sm:max-w-[330px] rounded-[28px] sm:rounded-[32px] bg-[#0B0F18] border-2 border-white/20 p-3.5 sm:p-4 shadow-[0_24px_60px_rgba(0,0,0,0.8)] space-y-3">
-                <div className="w-16 h-1.5 rounded-full bg-white/15 mx-auto" />
-
-                <div className="rounded-2xl bg-[#131926] border border-white/12 overflow-hidden">
-                  <div className="p-3.5 sm:p-4 border-b border-dashed border-white/15 space-y-2">
-                    <div className="flex items-center justify-between text-[10px] font-mono">
-                      <span className="text-emerald-400 font-bold">
-                        ● VÉ ĐIỆN TỬ ĐÃ XÁC NHẬN
-                      </span>
-                      <span className="text-white/60">#BK2026889</span>
-                    </div>
-                    <h3 className="font-display font-black text-sm sm:text-base text-white uppercase">
-                      Dune: Hành Tinh Cát 2 (T16)
-                    </h3>
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
-                      <div>
-                        <span className="text-[10px] text-white/50 block">Rạp chiếu</span>
-                        <span className="font-bold text-white">CineCore Nguyễn Huệ</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-white/50 block">Phòng & Ghế</span>
-                        <span className="font-bold text-amber-300">
-                          IMAX • Ghế E05, E06
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 sm:p-4 bg-[#0E131D] flex items-center justify-between gap-3">
-                    <div className="space-y-1 text-xs">
-                      <span className="text-[10px] text-white/50 block">
-                        Suất chiếu hôm nay
-                      </span>
-                      <span className="font-mono font-bold text-sm text-[#FF7A63] block">
-                        19:30 • 2D / IMAX
-                      </span>
-                      <span className="text-[11px] text-white/70 block">
-                        Quét mã QR tại cửa phòng chiếu
-                      </span>
-                    </div>
-                    <div className="p-1.5 sm:p-2 rounded-xl bg-white shrink-0 shadow-md">
-                      <QrCodeSvg value="CINECORE-PASS-BK2026889-E05-E06" size={60} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

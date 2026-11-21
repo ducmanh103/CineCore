@@ -5,7 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { DEFAULT_LANDING_DATA } from '../../constants/defaultLandingData';
 import { ShowtimeCardSkeleton } from '../../components/ui/Skeleton';
 import { getCensorshipText } from '../../components/movies/HeroCarousel';
-import { Building2, X, Ticket } from 'lucide-react';
+import { X, Ticket } from 'lucide-react';
 
 export const ShowtimesPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -42,7 +42,7 @@ export const ShowtimesPage: React.FC = () => {
       .then((res) => {
         if (Array.isArray(res) && res.length > 0) setTheaters(res);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -148,9 +148,8 @@ export const ShowtimesPage: React.FC = () => {
                   setSelectedDate(dateStr);
                   syncQuery(dateStr, selectedTheaterId, selectedMovieId);
                 }}
-                className={`h-9 rounded-md px-3.5 text-sm font-mono font-medium cursor-pointer ${
-                  isSelected ? 'btn-ncc-primary font-semibold' : 'btn-ncc-outline'
-                }`}
+                className={`h-9 rounded-md px-3.5 text-sm font-mono font-medium cursor-pointer ${isSelected ? 'btn-ncc-primary font-semibold' : 'btn-ncc-outline'
+                  }`}
               >
                 {formatDDMMYYYY(dateStr)}
               </button>
@@ -166,10 +165,7 @@ export const ShowtimesPage: React.FC = () => {
         {/* Compact Multi-Theater & Format Filter Bar */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 pt-1">
           <div className="relative">
-            <Building2
-              className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8B9BB4] pointer-events-none"
-              aria-hidden="true"
-            />
+
             <select
               value={selectedTheaterId}
               aria-label="Chọn cụm rạp"
@@ -193,9 +189,8 @@ export const ShowtimesPage: React.FC = () => {
               key={fmt}
               type="button"
               onClick={() => setScreenFilter(fmt)}
-              className={`h-9 px-3 rounded-md text-xs font-semibold cursor-pointer ${
-                screenFilter === fmt ? 'btn-ncc-primary' : 'btn-ncc-outline'
-              }`}
+              className={`h-9 px-3 rounded-md text-xs font-semibold cursor-pointer ${screenFilter === fmt ? 'btn-ncc-primary' : 'btn-ncc-outline'
+                }`}
             >
               {fmt === 'ALL' ? 'Mọi định dạng' : fmt}
             </button>
@@ -247,8 +242,8 @@ export const ShowtimesPage: React.FC = () => {
               const primaryFormat = slots[0]?.room?.screenType?.includes('IMAX')
                 ? 'IMAX'
                 : slots[0]?.room?.screenType?.includes('3D')
-                ? '3D'
-                : '2D';
+                  ? '3D'
+                  : '2D';
 
               const fullMovieMeta = [
                 ...DEFAULT_LANDING_DATA.nowShowing,
@@ -262,8 +257,8 @@ export const ShowtimesPage: React.FC = () => {
 
               const releaseStr = (movie.releaseDate || fullMovieMeta?.releaseDate)
                 ? new Date(
-                    (movie.releaseDate || fullMovieMeta?.releaseDate)!,
-                  ).toLocaleDateString('vi-VN')
+                  (movie.releaseDate || fullMovieMeta?.releaseDate)!,
+                ).toLocaleDateString('vi-VN')
                 : '2026';
 
               const rating = movie.ageRating || fullMovieMeta?.ageRating || 'P';

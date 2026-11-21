@@ -98,7 +98,7 @@ export const AiConciergeWidget: React.FC = () => {
             <MessageCircle className="w-4 h-4 sm:w-3.5 sm:h-3.5" aria-hidden="true" />
           </span>
           <span className="hidden sm:inline font-display font-semibold text-xs">
-            Hỗ trợ đặt vé
+            Trợ lý CineAI
           </span>
         </button>
       )}
@@ -145,11 +145,10 @@ export const AiConciergeWidget: React.FC = () => {
                 className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`px-3.5 py-2.5 rounded-2xl max-w-[85%] leading-relaxed ${
-                    m.sender === 'user'
-                      ? 'btn-ncc-primary text-white rounded-br-sm font-medium'
-                      : 'bg-[#1A1D23] text-white/95 rounded-bl-sm border border-white/10'
-                  }`}
+                  className={`px-3.5 py-2.5 rounded-2xl max-w-[85%] leading-relaxed ${m.sender === 'user'
+                    ? 'btn-ncc-primary text-white rounded-br-sm font-medium'
+                    : 'bg-[#1A1D23] text-white/95 rounded-bl-sm border border-white/10'
+                    }`}
                 >
                   {m.text}
                 </div>
@@ -230,7 +229,7 @@ export const AiConciergeWidget: React.FC = () => {
               name="chatMessage"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Nhập nội dung cần hỗ trợ..."
+              placeholder="Nhập nội dung cần hỗ trợ"
               aria-label="Nhập nội dung cần hỗ trợ"
               className="flex-1 px-3.5 py-2.5 rounded-xl cinema-input text-xs font-medium"
             />

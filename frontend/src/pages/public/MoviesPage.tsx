@@ -153,7 +153,6 @@ export const MoviesPage: React.FC = () => {
               Danh mục phim điện ảnh
             </h1>
           </div>
-          <div className="mt-2 ml-6 h-[3px] w-14 rounded-full bg-ncc-underline" />
         </div>
 
         <form
@@ -199,9 +198,8 @@ export const MoviesPage: React.FC = () => {
                 key={st.id}
                 type="button"
                 onClick={() => setStatusFilter(st.id)}
-                className={`h-9 px-4 rounded-xl text-xs sm:text-sm font-semibold cursor-pointer ${
-                  statusFilter === st.id ? 'btn-ncc-primary' : 'btn-ncc-outline'
-                }`}
+                className={`h-9 px-4 rounded-xl text-xs sm:text-sm font-semibold cursor-pointer ${statusFilter === st.id ? 'btn-ncc-primary' : 'btn-ncc-outline'
+                  }`}
               >
                 {st.label}
               </button>
@@ -239,9 +237,8 @@ export const MoviesPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setGenreFilter('ALL')}
-              className={`shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold cursor-pointer ${
-                genreFilter === 'ALL' ? 'btn-ncc-primary' : 'btn-ncc-outline'
-              }`}
+              className={`shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold cursor-pointer ${genreFilter === 'ALL' ? 'btn-ncc-primary' : 'btn-ncc-outline'
+                }`}
             >
               Mọi thể loại
             </button>
@@ -250,9 +247,8 @@ export const MoviesPage: React.FC = () => {
                 key={slug}
                 type="button"
                 onClick={() => setGenreFilter(slug)}
-                className={`shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold cursor-pointer ${
-                  genreFilter === slug ? 'btn-ncc-primary' : 'btn-ncc-outline'
-                }`}
+                className={`shrink-0 h-8 px-3.5 rounded-full text-xs font-semibold cursor-pointer ${genreFilter === slug ? 'btn-ncc-primary' : 'btn-ncc-outline'
+                  }`}
               >
                 {name}
               </button>

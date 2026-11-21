@@ -109,7 +109,7 @@ export const SelectSeatPage: React.FC = () => {
         });
 
         if (paymentRes.paymentUrl) {
-          toast.info('Đang chuyển tới cổng thanh toán VNPay...', `Mã đặt vé: #${booking.bookingCode}`);
+          toast.info('Đang chuyển tới cổng thanh toán VNPay', `Mã đặt vé: #${booking.bookingCode}`);
           window.location.href = paymentRes.paymentUrl;
           return;
         }
@@ -226,11 +226,10 @@ export const SelectSeatPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setPaymentMethod('VNPAY')}
-              className={`h-10 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 border transition-colors cursor-pointer ${
-                paymentMethod === 'VNPAY'
-                  ? 'bg-blue-600/20 border-blue-400 text-blue-200'
-                  : 'bg-[#10141B] border-white/12 text-white/75 hover:text-white'
-              }`}
+              className={`h-10 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 border transition-colors cursor-pointer ${paymentMethod === 'VNPAY'
+                ? 'bg-blue-600/20 border-blue-400 text-blue-200'
+                : 'bg-[#10141B] border-white/12 text-white/75 hover:text-white'
+                }`}
             >
               <CreditCard className="w-4 h-4 text-sky-400" aria-hidden="true" />
               <span>VNPay QR / Thẻ ngân hàng</span>
@@ -239,14 +238,13 @@ export const SelectSeatPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setPaymentMethod('CASH')}
-              className={`h-10 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 border transition-colors cursor-pointer ${
-                paymentMethod === 'CASH'
-                  ? 'bg-amber-500/20 border-amber-400 text-amber-200'
-                  : 'bg-[#10141B] border-white/12 text-white/75 hover:text-white'
-              }`}
+              className={`h-10 px-4 rounded-xl text-xs font-semibold inline-flex items-center gap-2 border transition-colors cursor-pointer ${paymentMethod === 'CASH'
+                ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+                : 'bg-[#10141B] border-white/12 text-white/75 hover:text-white'
+                }`}
             >
               <Banknote className="w-4 h-4 text-amber-400" aria-hidden="true" />
-              <span>Thanh toán tại quầy vé</span>
+              <span>Thanh toán tiền mặt</span>
             </button>
           </div>
         </div>

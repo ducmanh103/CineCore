@@ -6,13 +6,6 @@ import {
   Clapperboard,
   Menu,
   X,
-  Ticket,
-  Home,
-  Calendar,
-  Tag,
-  BadgeDollarSign,
-  Building2,
-  Film,
   User,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
@@ -57,12 +50,11 @@ export const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { label: 'Trang chủ', path: '/', icon: Home },
-    { label: 'Lịch chiếu', path: '/showtimes', icon: Calendar },
-    { label: 'Phim', path: '/movies', icon: Film },
-    { label: 'Khuyến mãi', path: '/promotions', icon: Tag },
-    { label: 'Giá vé', path: '/ticket-price', icon: BadgeDollarSign },
-    { label: 'Hệ thống rạp', path: '/theaters', icon: Building2 },
+    { label: 'Trang chủ', path: '/' },
+    { label: 'Lịch chiếu', path: '/showtimes' },
+    { label: 'Phim', path: '/movies' },
+    { label: 'Vé của tôi', path: '/booking/my-tickets' },
+    { label: 'Khuyến mãi', path: '/promotions' },
   ];
 
   const isPathActive = (path: string) => {
@@ -72,11 +64,10 @@ export const Navbar: React.FC = () => {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full text-white transition-all duration-300 ${
-        scrolled
-          ? 'glass-header shadow-[0_12px_32px_rgba(0,0,0,0.6)]'
-          : 'bg-[#080B11]/90 backdrop-blur-2xl border-b border-white/[0.06]'
-      }`}
+      className={`sticky top-0 z-50 w-full text-white transition-all duration-300 ${scrolled
+        ? 'glass-header shadow-[0_12px_32px_rgba(0,0,0,0.6)]'
+        : 'bg-[#080B11]/90 backdrop-blur-2xl border-b border-white/[0.06]'
+        }`}
     >
       {/* Top Scroll Progress Bar */}
       <div
@@ -109,27 +100,28 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* 2. Center Floating Glass Capsule Menu (Desktop) */}
           <nav
             aria-label="Điều hướng chính"
             className="hidden xl:flex items-center justify-center shrink-0"
           >
-            <div className="inline-flex items-center gap-1 p-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-xl">
-              {navLinks.map((item) => {
+            <div className="flex items-center">
+              {navLinks.map((item, index) => {
                 const active = isPathActive(item.path);
                 return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    aria-current={active ? 'page' : undefined}
-                    className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-                      active
-                        ? 'bg-gradient-to-r from-[#FF385C] to-[#FF7A63] text-white shadow-[0_4px_18px_rgba(255,56,92,0.45)]'
-                        : 'text-white/80 hover:text-white hover:bg-white/[0.07]'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
+                  <React.Fragment key={item.path}>
+                    <Link
+                      to={item.path}
+                      aria-current={active ? 'page' : undefined}
+                      className={`relative px-4 xl:px-5 py-2 text-sm font-semibold transition-colors duration-200 whitespace-nowrap group ${active
+                        ? 'text-[#FF385C] font-bold'
+                        : 'text-white/80 hover:text-[#FF385C]'
+                        }`}
+                    >
+                      <span>{item.label}</span>
+
+
+                    </Link>
+                  </React.Fragment>
                 );
               })}
             </div>
@@ -140,18 +132,6 @@ export const Navbar: React.FC = () => {
             {isAuthenticated && user ? (
               <>
                 <div className="hidden sm:flex items-center gap-2 shrink-0">
-                  <Link
-                    to="/booking/my-tickets"
-                    className={`inline-flex items-center gap-1.5 h-10 px-4 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap shrink-0 ${
-                      location.pathname.startsWith('/booking/my-tickets')
-                        ? 'btn-ncc-primary border-transparent'
-                        : 'btn-ncc-outline'
-                    }`}
-                  >
-                    <Ticket className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                    <span>Vé của tôi</span>
-                  </Link>
-
                   {(user.role === 'ADMIN' || user.role === 'STAFF') && (
                     <Link
                       to="/admin"
@@ -244,34 +224,20 @@ export const Navbar: React.FC = () => {
         <div className="xl:hidden border-t border-white/10 bg-[#080B11]/98 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-4 shadow-float animate-fade-up">
           <nav aria-label="Menu di động" className="space-y-1">
             {navLinks.map((item) => {
-              const Icon = item.icon;
               const active = isPathActive(item.path);
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-3 px-4 h-11 rounded-xl text-sm font-semibold transition-colors ${
-                    active
-                      ? 'bg-[#FF385C]/15 text-[#FF7A63] border border-[#FF385C]/35'
-                      : 'text-white/85 hover:bg-white/[0.06] hover:text-white'
-                  }`}
+                  className={`flex items-center gap-3 px-4 h-11 rounded-xl text-sm font-semibold transition-colors ${active
+                    ? 'bg-[#FF385C]/15 text-[#FF7A63] border border-[#FF385C]/35'
+                    : 'text-white/85 hover:bg-white/[0.06] hover:text-white'
+                    }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
                   <span>{item.label}</span>
                 </Link>
               );
             })}
-            <Link
-              to="/booking/my-tickets"
-              className={`flex items-center gap-3 px-4 h-11 rounded-xl text-sm font-semibold transition-colors ${
-                isPathActive('/booking/my-tickets')
-                  ? 'bg-[#FF385C]/15 text-[#FF7A63] border border-[#FF385C]/35'
-                  : 'text-white/85 hover:bg-white/[0.06] hover:text-white'
-              }`}
-            >
-              <Ticket className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span>Vé của tôi</span>
-            </Link>
           </nav>
 
           <div className="pt-3 border-t border-white/10">
